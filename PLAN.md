@@ -76,11 +76,20 @@ An ear training game where the computer plays a short musical pattern and the us
 - Verify: Can we reliably detect A4, E5, etc?
 - **Go/No-Go decision point**
 
-### Phase 1b: Violin Synthesis Test
+### Phase 1b: Violin Synthesis Test ✓ COMPLETE
 - Find violin samples or synthesizer
 - Test playback of simple patterns
 - Verify: Does it sound acceptable/realistic?
 - **Go/No-Go decision point**
+
+**Status: COMPLETE - GO**
+- **Approach:** WAV samples extracted from SF2 soundfont using FluidSynth
+- **Soundfont Used:** Valiant_Violin_V2.sf2
+- **Samples:** 8 notes (A3, B3, C4, D4, E4, A4, E5, A5), 4 seconds each, ~6.4MB total
+- **Playback:** Web Audio API in browser - works perfectly
+- **Sound Quality:** Good, acceptable for the game
+- **Hosting:** Simple - static files, no backend needed
+- **Tool:** `extract_samples.py` - can regenerate or add more notes easily
 
 ### Phase 2: Core Matching Algorithm
 - Implement time-sliced pitch detection

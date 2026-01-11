@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Violin Sample Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .note-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+        button {
+            font-size: 18px;
+            padding: 20px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .note-name {
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .frequency {
+            font-size: 12px;
+            color: #666;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Violin Sample Test</h1>
+    <p>Click buttons to play violin samples extracted from the soundfont</p>
+
+    <div class="note-grid">
+        <button onclick="playNote('A3')">
+            <div class="note-name">A3</div>
+            <div class="frequency">220 Hz</div>
+        </button>
+        <button onclick="playNote('B3')">
+            <div class="note-name">B3</div>
+            <div class="frequency">247 Hz</div>
+        </button>
+        <button onclick="playNote('C4')">
+            <div class="note-name">C4</div>
+            <div class="frequency">262 Hz</div>
+        </button>
+        <button onclick="playNote('D4')">
+            <div class="note-name">D4</div>
+            <div class="frequency">294 Hz</div>
+        </button>
+        <button onclick="playNote('E4')">
+            <div class="note-name">E4</div>
+            <div class="frequency">330 Hz</div>
+        </button>
+        <button onclick="playNote('A4')">
+            <div class="note-name">A4</div>
+            <div class="frequency">440 Hz</div>
+        </button>
+        <button onclick="playNote('E5')">
+            <div class="note-name">E5</div>
+            <div class="frequency">659 Hz</div>
+        </button>
+        <button onclick="playNote('A5')">
+            <div class="note-name">A5</div>
+            <div class="frequency">880 Hz</div>
+        </button>
+    </div>
+
+    <div id="status">Ready to play samples</div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffers = {};
+
+        // Preload all samples
+        const notes = ['A3', 'B3', 'C4', 'D4', 'E4', 'A4', 'E5', 'A5'];
+
+        async function loadSamples() {
+            document.getElementById('status').textContent = 'Loading samples...';
+
+            for (const note of notes) {
+                const response = await fetch(`samples/${note}.wav`);
+                const arrayBuffer = await response.arrayBuffer();
+                audioBuffers[note] = await audioContext.decodeAudioData(arrayBuffer);
+            }
+
+            document.getElementById('status').textContent = 'All samples loaded! Click buttons to play.';
+        }
+
+        async function playNote(noteName) {
+            if (!audioBuffers[noteName]) {
+                document.getElementById('status').textContent = 'Sample not loaded yet...';
+                return;
+            }
+
+            // Resume audio context if suspended (browser autoplay policy)
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffers[noteName];
+
+            // Add gain node to control volume
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = 1.0;
+
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            source.start();
+
+            document.getElementById('status').textContent = `Playing ${noteName} (AudioContext: ${audioContext.state})`;
+        }
+
+        // Load samples when page loads
+        loadSamples();
+    </script>
+</body>
+</html>

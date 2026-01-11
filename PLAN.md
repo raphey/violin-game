@@ -39,13 +39,14 @@ An ear training game where the computer plays a short musical pattern and the us
 
 ### Pattern Authoring
 - YAML-based pattern definition
-- Format:
+- Text-based notation format (TBD - needs to represent pitch, duration, rests)
+- Example structure (notation syntax not final):
   ```yaml
   level_name:
-    - "A4 A4 E5 E5 F#5 F#5 E5"
-    - "D5 D5 C#5 C#5 B4 B4 A4"
+    - "pattern string 1"
+    - "pattern string 2"
   ```
-- Patterns are 8 beats, can contain subdivisions
+- Patterns are 8 beats, can contain subdivisions and rests
 - Not user-facing - author-only tool
 
 ### Difficulty Progression

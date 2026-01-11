@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Test - Twinkle Twinkle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        button {
+            font-size: 20px;
+            padding: 15px 40px;
+            margin: 10px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #status {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f0f0f0;
+            border-radius: 10px;
+            min-height: 60px;
+        }
+        .note-display {
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+            min-height: 60px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎻 Rhythm Test: Twinkle Twinkle</h1>
+
+        <div class="info">
+            <h3>Twinkle Twinkle Little Star (A Major)</h3>
+            <p><strong>A A E E | F# F# E - | D D C# C# | B B A -</strong></p>
+            <p>Playing at 100 BPM using pitch shifting to fill missing notes</p>
+        </div>
+
+        <div class="note-display" id="note-display"></div>
+
+        <div class="controls">
+            <button id="play-btn" onclick="playMelody()">▶️ Play Pattern</button>
+            <button id="stop-btn" onclick="stopMelody()" disabled>⏹️ Stop</button>
+        </div>
+
+        <div id="status">Loading samples...</div>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffers = {};
+        let isPlaying = false;
+        let scheduledSources = [];
+
+        // Available samples and their MIDI note numbers
+        const sampleNotes = {
+            'A3': 57,
+            'B3': 59,
+            'C4': 60,
+            'D4': 62,
+            'E4': 64,
+            'A4': 69,
+            'E5': 76,
+            'A5': 81
+        };
+
+        // Convert note name to MIDI number
+        function noteToMidi(noteName) {
+            const noteMap = {
+                'C': 0, 'C#': 1, 'Db': 1,
+                'D': 2, 'D#': 3, 'Eb': 3,
+                'E': 4,
+                'F': 5, 'F#': 6, 'Gb': 6,
+                'G': 7, 'G#': 8, 'Ab': 8,
+                'A': 9, 'A#': 10, 'Bb': 10,
+                'B': 11
+            };
+
+            const match = noteName.match(/^([A-G]#?|[A-G]b?)(\d+)$/);
+            if (!match) return null;
+
+            const note = match[1];
+            const octave = parseInt(match[2]);
+
+            return (octave + 1) * 12 + noteMap[note];
+        }
+
+        // Find the closest sample for a target MIDI note
+        function findClosestSample(targetMidi) {
+            let closestSample = null;
+            let minDistance = Infinity;
+
+            for (const [sampleName, sampleMidi] of Object.entries(sampleNotes)) {
+                const distance = Math.abs(targetMidi - sampleMidi);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestSample = sampleName;
+                }
+            }
+
+            return {
+                sample: closestSample,
+                shift: targetMidi - sampleNotes[closestSample]
+            };
+        }
+
+        // Twinkle Twinkle Little Star in A Major
+        // Now just specify the note and duration - sample selection is automatic!
+        const melody = [
+            // Twinkle twinkle little star
+            { note: 'A4', duration: 0.5 },   // Twin-
+            { note: 'A4', duration: 0.5 },   // kle
+            { note: 'E5', duration: 0.5 },   // twin-
+            { note: 'E5', duration: 0.5 },   // kle
+            { note: 'F#5', duration: 0.5 },  // lit-
+            { note: 'F#5', duration: 0.5 },  // tle
+            { note: 'E5', duration: 1.0 },   // star
+
+            // How I wonder what you are
+            { note: 'D5', duration: 0.5 },   // How
+            { note: 'D5', duration: 0.5 },   // I
+            { note: 'C#5', duration: 0.5 },  // won-
+            { note: 'C#5', duration: 0.5 },  // der
+            { note: 'B4', duration: 0.5 },   // what
+            { note: 'B4', duration: 0.5 },   // you
+            { note: 'A4', duration: 1.0 },   // are
+        ];
+
+        const tempo = 100; // BPM
+        const beatDuration = 60 / tempo; // seconds per beat
+
+        // Calculate playback rate for pitch shifting
+        function getPitchShiftRate(semitones) {
+            return Math.pow(2, semitones / 12);
+        }
+
+        async function loadSamples() {
+            document.getElementById('status').textContent = 'Loading samples...';
+
+            for (const sampleName of Object.keys(sampleNotes)) {
+                const response = await fetch(`samples/${sampleName}.wav`);
+                const arrayBuffer = await response.arrayBuffer();
+                audioBuffers[sampleName] = await audioContext.decodeAudioData(arrayBuffer);
+            }
+
+            document.getElementById('status').textContent = 'Ready! Click Play to hear the pattern.';
+            document.getElementById('play-btn').disabled = false;
+        }
+
+        async function playMelody() {
+            if (isPlaying) return;
+
+            // Resume audio context if needed
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            isPlaying = true;
+            document.getElementById('play-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+            document.getElementById('status').textContent = 'Playing...';
+
+            const startTime = audioContext.currentTime;
+            let currentTime = startTime;
+
+            melody.forEach((noteInfo, index) => {
+                const { note, duration } = noteInfo;
+                const durationInSeconds = duration * beatDuration;
+
+                // Automatically find the best sample and calculate shift
+                const targetMidi = noteToMidi(note);
+                const { sample, shift } = findClosestSample(targetMidi);
+
+                // Schedule the note
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffers[sample];
+
+                // Apply pitch shifting if needed
+                if (shift !== 0) {
+                    source.playbackRate.value = getPitchShiftRate(shift);
+                }
+
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = 0.8;
+
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                source.start(currentTime);
+                source.stop(currentTime + durationInSeconds);
+
+                scheduledSources.push(source);
+
+                // Schedule visual update
+                setTimeout(() => {
+                    if (isPlaying) {
+                        const shiftText = shift !== 0 ? ` (${sample} ${shift > 0 ? '+' : ''}${shift})` : '';
+                        document.getElementById('note-display').textContent = note + shiftText;
+                    }
+                }, (currentTime - startTime) * 1000);
+
+                currentTime += durationInSeconds;
+
+                // Clear display and stop at the end
+                if (index === melody.length - 1) {
+                    setTimeout(() => {
+                        if (isPlaying) {
+                            stopMelody();
+                        }
+                    }, (currentTime - startTime) * 1000);
+                }
+            });
+        }
+
+        function stopMelody() {
+            isPlaying = false;
+
+            // Stop all scheduled sources
+            scheduledSources.forEach(source => {
+                try {
+                    source.stop();
+                } catch (e) {
+                    // Already stopped
+                }
+            });
+            scheduledSources = [];
+
+            document.getElementById('note-display').textContent = '';
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+            document.getElementById('status').textContent = 'Stopped. Click Play to hear again.';
+        }
+
+        // Load samples when page loads
+        loadSamples();
+    </script>
+</body>
+</html>

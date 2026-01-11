@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        button {
+            font-size: 20px;
+            padding: 15px 40px;
+            margin: 10px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pitch-display {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .frequency {
+            font-size: 72px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        .note-name {
+            font-size: 96px;
+            font-weight: bold;
+            color: #f5576c;
+            margin: 20px 0;
+        }
+        .cents {
+            font-size: 24px;
+            color: #666;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        #status {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        .reference-notes {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        .reference-notes h4 {
+            margin-top: 0;
+        }
+        .note-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .note-item {
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎻 Pitch Detection Test</h1>
+
+        <div class="info">
+            <h3>Instructions:</h3>
+            <p>1. Click "Start Listening" and allow microphone access</p>
+            <p>2. Play notes on your violin</p>
+            <p>3. Check if the detected pitch matches what you're playing</p>
+            <p>4. Test with different notes to verify accuracy</p>
+        </div>
+
+        <div class="controls">
+            <button id="start-btn" onclick="startListening()">🎤 Start Listening</button>
+            <button id="stop-btn" onclick="stopListening()" disabled>⏹️ Stop</button>
+        </div>
+
+        <div id="status">Click "Start Listening" to begin</div>
+
+        <div class="pitch-display">
+            <div class="note-name" id="note-display">-</div>
+            <div class="frequency" id="freq-display">--- Hz</div>
+            <div class="cents" id="cents-display">--</div>
+        </div>
+
+        <div class="reference-notes">
+            <h4>Reference Notes:</h4>
+            <div class="note-list">
+                <div class="note-item"><strong>A3</strong><br>220 Hz</div>
+                <div class="note-item"><strong>B3</strong><br>247 Hz</div>
+                <div class="note-item"><strong>C4</strong><br>262 Hz</div>
+                <div class="note-item"><strong>D4</strong><br>294 Hz</div>
+                <div class="note-item"><strong>E4</strong><br>330 Hz</div>
+                <div class="note-item"><strong>A4</strong><br>440 Hz</div>
+                <div class="note-item"><strong>E5</strong><br>659 Hz</div>
+                <div class="note-item"><strong>A5</strong><br>880 Hz</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+        let isListening = false;
+
+        // Smoothing - keep last N note readings (not just frequencies)
+        const noteBuffer = [];
+        const noteBufferSize = 15;  // Track last 15 note detections
+
+        // Get the most common note from the buffer (mode)
+        function getMostCommonNote(buffer) {
+            const counts = {};
+            let maxCount = 0;
+            let mostCommon = null;
+
+            buffer.forEach(noteStr => {
+                counts[noteStr] = (counts[noteStr] || 0) + 1;
+                if (counts[noteStr] > maxCount) {
+                    maxCount = counts[noteStr];
+                    mostCommon = noteStr;
+                }
+            });
+
+            return mostCommon;
+        }
+
+        // Autocorrelation pitch detection algorithm
+        function autoCorrelate(buffer, sampleRate) {
+            // Minimum and maximum frequencies we care about (violin range roughly 200-3000 Hz)
+            const minFreq = 80;  // ~E2
+            const maxFreq = 2000; // ~B6
+
+            const minSamples = Math.floor(sampleRate / maxFreq);
+            const maxSamples = Math.floor(sampleRate / minFreq);
+
+            // Find the first zero crossing
+            let foundStart = false;
+            let start = 0;
+            for (let i = 0; i < buffer.length; i++) {
+                if (!foundStart && buffer[i] > 0) {
+                    foundStart = true;
+                    start = i;
+                    break;
+                }
+            }
+
+            // Calculate RMS (root mean square) to check if there's enough signal
+            let rms = 0;
+            for (let i = 0; i < buffer.length; i++) {
+                rms += buffer[i] * buffer[i];
+            }
+            rms = Math.sqrt(rms / buffer.length);
+
+            // If signal is too weak, return -1
+            if (rms < 0.01) return -1;
+
+            // Autocorrelation
+            let bestCorrelation = 0;
+            let bestOffset = -1;
+
+            for (let offset = minSamples; offset <= maxSamples; offset++) {
+                let correlation = 0;
+                for (let i = 0; i < buffer.length - offset; i++) {
+                    correlation += Math.abs(buffer[i] - buffer[i + offset]);
+                }
+                correlation = 1 - (correlation / (buffer.length - offset));
+
+                if (correlation > 0.9 && correlation > bestCorrelation) {
+                    bestCorrelation = correlation;
+                    bestOffset = offset;
+                }
+            }
+
+            if (bestOffset === -1) return -1;
+
+            return sampleRate / bestOffset;
+        }
+
+        // Convert frequency to note name
+        function frequencyToNote(frequency) {
+            const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const a4 = 440;
+            const c0 = a4 * Math.pow(2, -4.75);
+
+            if (frequency <= 0) return { note: '-', octave: '', cents: 0 };
+
+            const halfSteps = 12 * Math.log2(frequency / c0);
+            const noteIndex = Math.round(halfSteps) % 12;
+            const octave = Math.floor(Math.round(halfSteps) / 12);
+
+            // Calculate cents (100 cents = 1 semitone)
+            const cents = Math.floor((halfSteps - Math.round(halfSteps)) * 100);
+
+            return {
+                note: noteNames[noteIndex],
+                octave: octave,
+                cents: cents
+            };
+        }
+
+        async function startListening() {
+            try {
+                document.getElementById('status').textContent = 'Requesting microphone access...';
+
+                // Get microphone access
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        autoGainControl: false,
+                        noiseSuppression: false
+                    }
+                });
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 4096;  // Increased from 2048 for more stability
+
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+
+                const bufferLength = analyser.fftSize;
+                const buffer = new Float32Array(bufferLength);
+
+                isListening = true;
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('stop-btn').disabled = false;
+                document.getElementById('status').textContent = 'Listening... Play your violin!';
+
+                // Analyze audio in real-time
+                function detectPitch() {
+                    if (!isListening) return;
+
+                    analyser.getFloatTimeDomainData(buffer);
+                    const frequency = autoCorrelate(buffer, audioContext.sampleRate);
+
+                    if (frequency > 0) {
+                        // Get the note for this frequency
+                        const noteInfo = frequencyToNote(frequency);
+                        const noteStr = noteInfo.note + noteInfo.octave;
+
+                        // Add to note buffer
+                        noteBuffer.push(noteStr);
+                        if (noteBuffer.length > noteBufferSize) {
+                            noteBuffer.shift();
+                        }
+
+                        // Get the most common note from recent detections
+                        const stableNote = getMostCommonNote(noteBuffer);
+
+                        if (stableNote) {
+                            document.getElementById('freq-display').textContent = frequency.toFixed(1) + ' Hz';
+                            document.getElementById('note-display').textContent = stableNote;
+
+                            const centsText = noteInfo.cents > 0 ?
+                                `+${noteInfo.cents} cents` :
+                                `${noteInfo.cents} cents`;
+                            document.getElementById('cents-display').textContent = centsText;
+                        }
+                    } else {
+                        // Clear note buffer when no signal
+                        noteBuffer.length = 0;
+                        document.getElementById('note-display').textContent = '-';
+                        document.getElementById('freq-display').textContent = '--- Hz';
+                        document.getElementById('cents-display').textContent = '--';
+                    }
+
+                    requestAnimationFrame(detectPitch);
+                }
+
+                detectPitch();
+
+            } catch (error) {
+                document.getElementById('status').textContent =
+                    'Error: Could not access microphone. ' + error.message;
+                console.error('Microphone error:', error);
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+
+            // Clear note buffer
+            noteBuffer.length = 0;
+
+            if (microphone) {
+                microphone.disconnect();
+                microphone.mediaStream.getTracks().forEach(track => track.stop());
+            }
+
+            if (audioContext) {
+                audioContext.close();
+            }
+
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+            document.getElementById('status').textContent = 'Stopped. Click "Start Listening" to try again.';
+            document.getElementById('note-display').textContent = '-';
+            document.getElementById('freq-display').textContent = '--- Hz';
+            document.getElementById('cents-display').textContent = '--';
+        }
+    </script>
+</body>
+</html>

@@ -69,12 +69,21 @@ An ear training game where the computer plays a short musical pattern and the us
 
 ## Project Phases
 
-### Phase 1a: Pitch Detection Test
+### Phase 1a: Pitch Detection Test ✓ COMPLETE
 - Get microphone access in browser
 - Implement pitch detection library
 - Test with real violin input
 - Verify: Can we reliably detect A4, E5, etc?
 - **Go/No-Go decision point**
+
+**Status: COMPLETE - GO**
+- **Approach:** Autocorrelation algorithm with Web Audio API
+- **Stability:** FFT size 4096 + mode-based smoothing (15-note buffer)
+- **Accuracy:** Successfully distinguishes between notes, including higher E string
+- **Latency:** Responsive enough for gameplay (~180ms with smoothing)
+- **Rest Detection:** Properly detects silence vs. playing
+- **Browser-based:** Works well, no need for native app
+- **Tool:** `pitch-test.html` - can test with violin anytime
 
 ### Phase 1b: Violin Synthesis Test ✓ COMPLETE
 - Find violin samples or synthesizer

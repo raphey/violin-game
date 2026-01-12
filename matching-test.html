@@ -161,6 +161,7 @@
 
         <div class="controls">
             <button id="start-btn" onclick="startChallenge()" disabled>▶️ Start Challenge</button>
+            <button id="beep-test-btn" onclick="startBeepTest()" disabled>🔊 Beep Test (with compensation)</button>
         </div>
 
         <div id="status">Loading...</div>
@@ -188,7 +189,7 @@
         // Pattern definition
         const tempo = 100; // BPM
         const beatDuration = 60 / tempo; // seconds per beat
-        const sliceInterval = 0.05; // 50ms slices
+        const sliceInterval = beatDuration / 2; // 8th note slices (half a beat)
         const pattern = [
             { note: 'A4', duration: 1.0 },
             { note: 'E5', duration: 1.0 },
@@ -219,6 +220,7 @@
         let recordedChunks = [];
         let recordingStartTime = null;
         let intendedStartTime = null;
+        let roundTripLatencyMs = 0; // Measured during calibration in milliseconds
 
         // Update tolerance display
         document.getElementById('tolerance-slider').addEventListener('input', (e) => {
@@ -233,7 +235,137 @@
                 audioBuffers[sampleName] = await audioContext.decodeAudioData(arrayBuffer);
             }
             document.getElementById('start-btn').disabled = false;
+            document.getElementById('beep-test-btn').disabled = false;
             document.getElementById('status').textContent = 'Ready! Click "Start Challenge" to begin.';
+        }
+
+        // Calibrate round-trip audio latency
+        async function calibrateLatency() {
+            return new Promise((resolve) => {
+                const calibrationChunks = [];
+                const recorder = new MediaRecorder(microphoneStream);
+
+                recorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        calibrationChunks.push(event.data);
+                    }
+                };
+
+                recorder.onstop = async () => {
+                    // Analyze the recording to find when the beep appears
+                    const audioBlob = new Blob(calibrationChunks, { type: 'audio/webm' });
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+                    const sampleRate = audioBuffer.sampleRate;
+                    const audioData = audioBuffer.getChannelData(0);
+                    const checkIntervalMs = 10; // Check every 10ms
+                    const checkSamples = Math.round((checkIntervalMs / 1000) * sampleRate);
+                    const maxChecks = 50; // Check up to 500ms
+
+                    // Find the first window with significant signal
+                    for (let checkIndex = 0; checkIndex < maxChecks; checkIndex++) {
+                        const windowStart = checkIndex * checkSamples;
+                        const windowEnd = Math.min(windowStart + checkSamples, audioData.length);
+
+                        let rms = 0;
+                        for (let i = windowStart; i < windowEnd; i++) {
+                            rms += audioData[i] * audioData[i];
+                        }
+                        rms = Math.sqrt(rms / (windowEnd - windowStart));
+
+                        if (rms > 0.02) { // Significant signal detected
+                            roundTripLatencyMs = checkIndex * checkIntervalMs;
+                            console.log(`Round-trip latency detected: ${roundTripLatencyMs}ms`);
+                            resolve();
+                            return;
+                        }
+                    }
+
+                    // Default to 100ms if nothing detected
+                    roundTripLatencyMs = 100;
+                    console.log('Could not detect latency beep, using default 100ms');
+                    resolve();
+                };
+
+                // Play beep and start recording simultaneously
+                playClick();
+                recorder.start();
+
+                // Stop after 500ms
+                setTimeout(() => {
+                    recorder.stop();
+                }, 500);
+            });
+        }
+
+        // Beep test to verify latency compensation
+        async function startBeepTest() {
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('beep-test-btn').disabled = true;
+            document.getElementById('results').style.display = 'none';
+
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            // Request microphone permission upfront if not already granted
+            if (!micPermissionGranted) {
+                try {
+                    document.getElementById('status').textContent = 'Requesting microphone permission...';
+                    microphoneStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            autoGainControl: false,
+                            noiseSuppression: false
+                        }
+                    });
+                    micPermissionGranted = true;
+                    document.getElementById('status').textContent = 'Calibrating audio latency...';
+                    await calibrateLatency();
+                    document.getElementById('status').textContent = `Calibration complete! Round-trip latency: ${roundTripLatencyMs}ms`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (error) {
+                    document.getElementById('status').textContent = 'Error: Microphone access denied. ' + error.message;
+                    document.getElementById('start-btn').disabled = false;
+                    document.getElementById('beep-test-btn').disabled = false;
+                    return;
+                }
+            }
+
+            // Generate reference (4 beeps)
+            referenceTimeSeries = generateReferenceTimeSeries(pattern);
+
+            // Play 4 beeps and record
+            document.getElementById('status').textContent = 'Playing beeps and recording...';
+
+            // Start recording
+            recordedChunks = [];
+            audioRecorder = new MediaRecorder(microphoneStream);
+            audioRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            audioRecorder.onstop = async () => {
+                await analyzeRecording();
+            };
+
+            recordingStartTime = audioContext.currentTime;
+            intendedStartTime = audioContext.currentTime;
+            audioRecorder.start();
+            isRecording = true;
+
+            // Play 4 beeps, one per beat
+            const totalDuration = 4 * beatDuration;
+            for (let i = 0; i < 4; i++) {
+                playClick();
+                await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
+            }
+
+            // Stop recording
+            audioRecorder.stop();
+            isRecording = false;
         }
 
         // Main challenge flow: play reference, countdown, record
@@ -257,8 +389,10 @@
                         }
                     });
                     micPermissionGranted = true;
-                    document.getElementById('status').textContent = 'Microphone ready!';
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    document.getElementById('status').textContent = 'Calibrating audio latency...';
+                    await calibrateLatency();
+                    document.getElementById('status').textContent = `Calibration complete! Round-trip latency: ${roundTripLatencyMs}ms`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 } catch (error) {
                     document.getElementById('status').textContent = 'Error: Microphone access denied. ' + error.message;
                     document.getElementById('start-btn').disabled = false;
@@ -320,9 +454,9 @@
                 playClick();
 
                 // Calculate exact time when recording should start
-                // Account for output latency - user hears the click later than we scheduled it
-                intendedStartTime = audioContext.currentTime + beatDuration + outputLatency;
-                console.log(`Intended recording start time: ${intendedStartTime.toFixed(3)}s (GO! + ${beatDuration}s + ${(outputLatency * 1000).toFixed(1)}ms latency)`);
+                // Don't compensate for output latency - the recording timeline doesn't know about it
+                intendedStartTime = audioContext.currentTime + beatDuration;
+                console.log(`Intended recording start time: ${intendedStartTime.toFixed(3)}s (GO! + ${beatDuration}s)`);
 
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
@@ -402,6 +536,7 @@
             // Record actual start time
             recordingStartTime = audioContext.currentTime;
             console.log(`Recording actually started at: ${recordingStartTime.toFixed(3)}s`);
+            playClick(); // Beep to indicate recording started
             audioRecorder.start();
             isRecording = true;
 
@@ -410,6 +545,7 @@
             setTimeout(() => {
                 audioRecorder.stop();
                 isRecording = false;
+                playClick(); // Beep to indicate recording stopped (after stopping recorder)
             }, totalDuration * 1000);
         }
 
@@ -448,25 +584,38 @@
 
                 console.log(`Slice samples: ${sliceSamples} (${(sliceSamples / sampleRate * 1000).toFixed(3)}ms per slice)`);
 
-                // Start from the correct position based on timing offset
-                const startSample = Math.max(0, sampleOffset);
+                // Determine where to start analyzing based on timing offset
+                // If sampleOffset < 0: recording started early, skip the beginning
+                // If sampleOffset > 0: recording started late, start from beginning and pad later
+                let startSample = sampleOffset < 0 ? Math.abs(sampleOffset) : 0;
+
+                // Account for round-trip audio latency (output + input)
+                // User hears clicks late, plays late, so their audio appears LATE in recording
+                // We need to shift analysis FORWARD (add compensation)
+                const latencyCompensationSamples = Math.round((roundTripLatencyMs / 1000) * sampleRate);
+                startSample = startSample + latencyCompensationSamples;
+
+                console.log(`Start analyzing from sample ${startSample} (shifted forward by ${roundTripLatencyMs}ms for latency)`);
 
                 // Only process exactly as many slices as we expect in the reference
                 const expectedSlices = referenceTimeSeries.length;
 
+                // Log timing for first few and transition slices
+                const slicesToLog = [0, 1, 11, 12, 13, 23, 24, 25, 35, 36, 37];
+
                 for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
                     const slicePosition = startSample + (sliceIndex * sliceSamples);
 
-                    // For the analysis window:
-                    // - If we have enough buffer before slicePosition, center the window
-                    // - Otherwise, start from slicePosition (don't look before the start)
-                    const halfWindow = Math.floor(windowSize / 2);
-                    const canCenter = slicePosition >= startSample + halfWindow;
+                    if (slicesToLog.includes(sliceIndex)) {
+                        const timeMs = (slicePosition / sampleRate * 1000).toFixed(1);
+                        console.log(`Slice ${sliceIndex}: analyzing sample ${slicePosition} (${timeMs}ms from buffer start)`);
+                    }
 
-                    const windowStart = canCenter
-                        ? slicePosition - halfWindow
-                        : slicePosition;
-                    const windowEnd = Math.min(windowStart + windowSize, audioData.length);
+                    // Analyze FORWARD from this slice position
+                    // This detects "what pitch is present starting now"
+                    // rather than "what pitch is present around now"
+                    const windowStart = slicePosition;
+                    const windowEnd = Math.min(slicePosition + windowSize, audioData.length);
                     const slice = audioData.slice(windowStart, windowEnd);
 
                     // Detect pitch for this slice
@@ -474,9 +623,10 @@
                     recordedTimeSeries.push(frequency > 0 ? frequency : null);
                 }
 
-                // If recording started late, pad the beginning with null values
-                if (sampleOffset < 0) {
-                    const missedSlices = Math.ceil(Math.abs(sampleOffset) / sliceSamples);
+                // Only pad if recording started significantly late (more than half a slice)
+                if (sampleOffset > sliceSamples / 2) {
+                    const missedSlices = Math.ceil(sampleOffset / sliceSamples);
+                    console.log(`Recording started late, padding with ${missedSlices} null slices`);
                     recordedTimeSeries = Array(missedSlices).fill(null).concat(recordedTimeSeries);
                 }
 
@@ -500,6 +650,7 @@
             showResults(error, tolerance, passed);
 
             document.getElementById('start-btn').disabled = false;
+            document.getElementById('beep-test-btn').disabled = false;
         }
 
         // Normalize frequency to a base octave (between 200-400 Hz range)

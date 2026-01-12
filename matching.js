@@ -1,9 +1,10 @@
 // Matching Algorithm
 // Core pattern matching logic extracted from matching-test.html
 const Matching = {
-    tempo: 100, // BPM
-    beatDuration: 0.6, // seconds per beat (60/100)
-    sliceInterval: 0.3, // 8th note slices (half a beat)
+    // Tempo is managed by Audio object - reference it from there
+    get tempo() { return Audio.tempo; },
+    get beatDuration() { return Audio.beatDuration; },
+    get sliceInterval() { return Audio.beatDuration / 2; }, // 8th note slices (half a beat)
 
     // Sample notes mapping (MIDI numbers)
     sampleNotes: {

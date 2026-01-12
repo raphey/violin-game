@@ -28,6 +28,37 @@
                 <button class="menu-btn disabled" data-category="lightly-row">Lightly Row<br><span class="coming-soon">Coming Soon</span></button>
                 <button class="menu-btn disabled" data-category="wind">Song of the Wind<br><span class="coming-soon">Coming Soon</span></button>
             </div>
+            <button class="settings-btn" id="settings-btn">⚙️ Settings</button>
+        </div>
+
+        <!-- Settings Screen -->
+        <div class="menu-screen hidden" id="settings-screen">
+            <h2 class="menu-title">Settings</h2>
+
+            <div class="settings-panel">
+                <div class="setting-item">
+                    <label for="tempo-slider">Tempo: <span id="tempo-value">90</span> BPM</label>
+                    <input type="range" id="tempo-slider" min="60" max="120" value="90" step="5">
+                    <div class="setting-range">60 - 120</div>
+                </div>
+
+                <div class="setting-item">
+                    <label for="tolerance-slider">Tolerance: <span id="tolerance-value">6</span></label>
+                    <input type="range" id="tolerance-slider" min="2" max="8" value="6" step="1">
+                    <div class="setting-range">2 - 8 (lower = harder)</div>
+                </div>
+
+                <div class="setting-item">
+                    <label for="length-slider">Questions per Level: <span id="length-value">10</span></label>
+                    <input type="range" id="length-slider" min="5" max="15" value="10" step="1">
+                    <div class="setting-range">5 - 15</div>
+                </div>
+
+                <div class="settings-buttons">
+                    <button class="settings-action-btn" id="reset-settings-btn">Reset to Defaults</button>
+                    <button class="settings-action-btn primary" id="close-settings-btn">Done</button>
+                </div>
+            </div>
         </div>
 
         <!-- Level Selection Screen -->
@@ -76,6 +107,7 @@
     <script src="recording.js"></script>
     <script src="matching.js"></script>
     <script src="patterns.js"></script>
+    <script src="settings.js"></script>
     <script src="game.js"></script>
     <script src="celebrations.js"></script>
     <script src="ui.js"></script>

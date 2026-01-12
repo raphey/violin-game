@@ -3,8 +3,8 @@
 const Audio = {
     audioContext: null,
     audioBuffers: {},
-    tempo: 100, // BPM
-    beatDuration: 0.6, // seconds per beat (60/100)
+    tempo: 90, // BPM (configurable via Settings)
+    beatDuration: 0.667, // seconds per beat (60/90)
 
     // Available samples and their MIDI note numbers
     sampleNotes: {
@@ -175,6 +175,13 @@ const Audio = {
         await new Promise(resolve => setTimeout(resolve, this.beatDuration * 1000));
 
         return goClickTime; // Return time of GO! click for recording alignment
+    },
+
+    // Update tempo (called from Settings)
+    setTempo: function(bpm) {
+        this.tempo = bpm;
+        this.beatDuration = 60 / bpm;
+        console.log(`Tempo updated: ${bpm} BPM (${this.beatDuration.toFixed(3)}s per beat)`);
     }
 };
 

@@ -73,6 +73,73 @@ const UI = {
             }
             Game.startGame();
         });
+
+        // Settings button
+        const settingsBtn = document.getElementById('settings-btn');
+        settingsBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            this.showSettingsScreen();
+        });
+
+        // Close settings button
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        closeSettingsBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            this.showCategoryScreen();
+        });
+
+        // Reset settings button
+        const resetSettingsBtn = document.getElementById('reset-settings-btn');
+        resetSettingsBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            Settings.reset();
+            this.updateSettingsUI();
+        });
+
+        // Tempo slider
+        const tempoSlider = document.getElementById('tempo-slider');
+        const tempoValue = document.getElementById('tempo-value');
+        tempoSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            tempoValue.textContent = value;
+            Settings.set('tempo', value);
+        });
+
+        // Tolerance slider
+        const toleranceSlider = document.getElementById('tolerance-slider');
+        const toleranceValue = document.getElementById('tolerance-value');
+        toleranceSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            toleranceValue.textContent = value;
+            Settings.set('tolerance', value);
+        });
+
+        // Level length slider
+        const lengthSlider = document.getElementById('length-slider');
+        const lengthValue = document.getElementById('length-value');
+        lengthSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            lengthValue.textContent = value;
+            Settings.set('levelLength', value);
+        });
+    },
+
+    // Update settings UI to reflect current values
+    updateSettingsUI: function() {
+        document.getElementById('tempo-slider').value = Settings.get('tempo');
+        document.getElementById('tempo-value').textContent = Settings.get('tempo');
+
+        document.getElementById('tolerance-slider').value = Settings.get('tolerance');
+        document.getElementById('tolerance-value').textContent = Settings.get('tolerance');
+
+        document.getElementById('length-slider').value = Settings.get('levelLength');
+        document.getElementById('length-value').textContent = Settings.get('levelLength');
     },
 
     // Update the pattern display
@@ -179,15 +246,37 @@ const UI = {
         }
     },
 
+    // Show settings screen
+    showSettingsScreen: function() {
+        const categoryScreen = document.getElementById('category-screen');
+        const settingsScreen = document.getElementById('settings-screen');
+        const levelScreen = document.getElementById('level-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const celebrationScreen = document.getElementById('celebration-screen');
+        const progressContainer = document.getElementById('progress-container');
+
+        categoryScreen.classList.add('hidden');
+        settingsScreen.classList.remove('hidden');
+        levelScreen.classList.add('hidden');
+        gameScreen.classList.add('hidden');
+        celebrationScreen.classList.add('hidden');
+        progressContainer.classList.add('hidden');
+
+        // Update UI to reflect current settings
+        this.updateSettingsUI();
+    },
+
     // Show category selection screen
     showCategoryScreen: function() {
         const categoryScreen = document.getElementById('category-screen');
+        const settingsScreen = document.getElementById('settings-screen');
         const levelScreen = document.getElementById('level-screen');
         const gameScreen = document.getElementById('game-screen');
         const celebrationScreen = document.getElementById('celebration-screen');
         const progressContainer = document.getElementById('progress-container');
 
         categoryScreen.classList.remove('hidden');
+        settingsScreen.classList.add('hidden');
         levelScreen.classList.add('hidden');
         gameScreen.classList.add('hidden');
         celebrationScreen.classList.add('hidden');

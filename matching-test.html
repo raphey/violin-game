@@ -152,8 +152,8 @@
 
         <div class="tolerance-control">
             <label>Tolerance (Error Threshold):</label>
-            <input type="range" id="tolerance-slider" min="0" max="10" value="3.5" step="0.1">
-            <div class="tolerance-value" id="tolerance-value">3.5</div>
+            <input type="range" id="tolerance-slider" min="0" max="10" value="5" step="0.1">
+            <div class="tolerance-value" id="tolerance-value">5</div>
             <p style="font-size: 12px; margin-top: 10px;">
                 Lower = stricter matching. Higher = more forgiving.
             </p>
@@ -219,8 +219,7 @@
         let audioRecorder = null;
         let recordedChunks = [];
         let recordingStartTime = null;
-        let intendedStartTime = null;
-        let roundTripLatencyMs = 0; // Measured during calibration in milliseconds
+        let goClickTime = null;
 
         // Update tolerance display
         document.getElementById('tolerance-slider').addEventListener('input', (e) => {
@@ -239,65 +238,6 @@
             document.getElementById('status').textContent = 'Ready! Click "Start Challenge" to begin.';
         }
 
-        // Calibrate round-trip audio latency
-        async function calibrateLatency() {
-            return new Promise((resolve) => {
-                const calibrationChunks = [];
-                const recorder = new MediaRecorder(microphoneStream);
-
-                recorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        calibrationChunks.push(event.data);
-                    }
-                };
-
-                recorder.onstop = async () => {
-                    // Analyze the recording to find when the beep appears
-                    const audioBlob = new Blob(calibrationChunks, { type: 'audio/webm' });
-                    const arrayBuffer = await audioBlob.arrayBuffer();
-                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-                    const sampleRate = audioBuffer.sampleRate;
-                    const audioData = audioBuffer.getChannelData(0);
-                    const checkIntervalMs = 10; // Check every 10ms
-                    const checkSamples = Math.round((checkIntervalMs / 1000) * sampleRate);
-                    const maxChecks = 50; // Check up to 500ms
-
-                    // Find the first window with significant signal
-                    for (let checkIndex = 0; checkIndex < maxChecks; checkIndex++) {
-                        const windowStart = checkIndex * checkSamples;
-                        const windowEnd = Math.min(windowStart + checkSamples, audioData.length);
-
-                        let rms = 0;
-                        for (let i = windowStart; i < windowEnd; i++) {
-                            rms += audioData[i] * audioData[i];
-                        }
-                        rms = Math.sqrt(rms / (windowEnd - windowStart));
-
-                        if (rms > 0.02) { // Significant signal detected
-                            roundTripLatencyMs = checkIndex * checkIntervalMs;
-                            console.log(`Round-trip latency detected: ${roundTripLatencyMs}ms`);
-                            resolve();
-                            return;
-                        }
-                    }
-
-                    // Default to 100ms if nothing detected
-                    roundTripLatencyMs = 100;
-                    console.log('Could not detect latency beep, using default 100ms');
-                    resolve();
-                };
-
-                // Play beep and start recording simultaneously
-                playClick();
-                recorder.start();
-
-                // Stop after 500ms
-                setTimeout(() => {
-                    recorder.stop();
-                }, 500);
-            });
-        }
 
         // Beep test to verify latency compensation
         async function startBeepTest() {
@@ -321,10 +261,8 @@
                         }
                     });
                     micPermissionGranted = true;
-                    document.getElementById('status').textContent = 'Calibrating audio latency...';
-                    await calibrateLatency();
-                    document.getElementById('status').textContent = `Calibration complete! Round-trip latency: ${roundTripLatencyMs}ms`;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    document.getElementById('status').textContent = 'Microphone ready!';
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 } catch (error) {
                     document.getElementById('status').textContent = 'Error: Microphone access denied. ' + error.message;
                     document.getElementById('start-btn').disabled = false;
@@ -389,10 +327,8 @@
                         }
                     });
                     micPermissionGranted = true;
-                    document.getElementById('status').textContent = 'Calibrating audio latency...';
-                    await calibrateLatency();
-                    document.getElementById('status').textContent = `Calibration complete! Round-trip latency: ${roundTripLatencyMs}ms`;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    document.getElementById('status').textContent = 'Microphone ready!';
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 } catch (error) {
                     document.getElementById('status').textContent = 'Error: Microphone access denied. ' + error.message;
                     document.getElementById('start-btn').disabled = false;
@@ -400,7 +336,25 @@
                 }
             }
 
-            // Step 1: Play reference pattern
+            // Step 1: Start recording FIRST (so it's ready when countdown starts)
+            document.getElementById('status').textContent = 'Starting...';
+            recordedChunks = [];
+            audioRecorder = new MediaRecorder(microphoneStream);
+            audioRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            audioRecorder.onstop = async () => {
+                await analyzeRecording();
+            };
+
+            recordingStartTime = audioContext.currentTime;
+            console.log(`Recording started at: ${recordingStartTime.toFixed(3)}s`);
+            audioRecorder.start();
+            isRecording = true;
+
+            // Step 2: Play reference pattern (while recording is starting up)
             document.getElementById('status').textContent = '🎻 Listen to the reference pattern...';
             referenceTimeSeries = generateReferenceTimeSeries(pattern);
 
@@ -425,44 +379,38 @@
 
             const totalDuration = pattern.reduce((sum, n) => sum + n.duration, 0) * beatDuration;
 
-            // Step 2: Wait for reference to finish, then countdown
+            // Step 3: Wait for reference to finish, then play countdown
             setTimeout(async () => {
+                // Recording is already running, no startup delay!
                 // Countdown with clicks
                 document.getElementById('status').textContent = 'Get ready... 1';
-                const click1Time = audioContext.currentTime;
-                console.log(`Click 1 at: ${click1Time.toFixed(3)}s`);
                 playClick();
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
                 document.getElementById('status').textContent = '2';
-                const click2Time = audioContext.currentTime;
-                console.log(`Click 2 at: ${click2Time.toFixed(3)}s`);
                 playClick();
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
                 document.getElementById('status').textContent = 'Ready';
-                const click3Time = audioContext.currentTime;
-                console.log(`Click 3 at: ${click3Time.toFixed(3)}s`);
                 playClick();
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
                 document.getElementById('status').textContent = 'GO!';
-                const click4Time = audioContext.currentTime;
-                const outputLatency = audioContext.outputLatency || 0;
-                console.log(`Click 4 (GO!) at: ${click4Time.toFixed(3)}s`);
-                console.log(`Audio output latency: ${(outputLatency * 1000).toFixed(1)}ms`);
+                goClickTime = audioContext.currentTime;
+                console.log(`GO! click at: ${goClickTime.toFixed(3)}s (${((goClickTime - recordingStartTime) * 1000).toFixed(1)}ms into recording)`);
                 playClick();
-
-                // Calculate exact time when recording should start
-                // Don't compensate for output latency - the recording timeline doesn't know about it
-                intendedStartTime = audioContext.currentTime + beatDuration;
-                console.log(`Intended recording start time: ${intendedStartTime.toFixed(3)}s (GO! + ${beatDuration}s)`);
 
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
-                // Step 3: Start recording raw audio
+                // User should be playing now
                 document.getElementById('status').textContent = '🔴 RECORDING - Play now!';
-                startRecording();
+
+                // Stop recording after pattern duration
+                const totalDuration = pattern.reduce((sum, n) => sum + n.duration, 0) * beatDuration;
+                setTimeout(() => {
+                    audioRecorder.stop();
+                    isRecording = false;
+                }, totalDuration * 1000);
             }, totalDuration * 1000);
         }
 
@@ -515,38 +463,44 @@
             return 440 * Math.pow(2, (midi - 69) / 12);
         }
 
-        // Start recording raw audio
-        function startRecording() {
-            recordedChunks = [];
+        // Detect where the GO! click appears in the recording
+        function findGoClickInRecording(audioData, sampleRate) {
+            // GO! should be around 4.2s into the recording
+            // (reference pattern 2.4s + 3 beat delays = 2.4s + 1.8s = 4.2s)
+            const searchStartMs = 4000;
+            const searchEndMs = 4600;
+            const searchStartSample = Math.floor((searchStartMs / 1000) * sampleRate);
+            const searchEndSample = Math.floor((searchEndMs / 1000) * sampleRate);
 
-            // Use MediaRecorder to capture raw audio
-            audioRecorder = new MediaRecorder(microphoneStream);
+            const checkInterval = 0.01; // Check every 10ms
+            const checkSamples = Math.round(checkInterval * sampleRate);
 
-            audioRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    recordedChunks.push(event.data);
+            let lastClickPosition = -1;
+            let maxRms = 0;
+
+            // Find the loudest transient in the search window
+            for (let windowStart = searchStartSample; windowStart < searchEndSample; windowStart += checkSamples) {
+                const windowEnd = Math.min(windowStart + checkSamples, audioData.length);
+
+                let rms = 0;
+                for (let i = windowStart; i < windowEnd; i++) {
+                    rms += audioData[i] * audioData[i];
                 }
-            };
+                rms = Math.sqrt(rms / (windowEnd - windowStart));
 
-            audioRecorder.onstop = async () => {
-                // Recording finished - now analyze it
-                await analyzeRecording();
-            };
+                if (rms > maxRms && rms > 0.02) {
+                    maxRms = rms;
+                    lastClickPosition = windowStart;
+                }
+            }
 
-            // Record actual start time
-            recordingStartTime = audioContext.currentTime;
-            console.log(`Recording actually started at: ${recordingStartTime.toFixed(3)}s`);
-            playClick(); // Beep to indicate recording started
-            audioRecorder.start();
-            isRecording = true;
+            if (lastClickPosition >= 0) {
+                console.log(`Found GO! click at sample ${lastClickPosition} (${(lastClickPosition / sampleRate * 1000).toFixed(1)}ms, RMS: ${maxRms.toFixed(4)})`);
+                return lastClickPosition;
+            }
 
-            // Stop after pattern duration
-            const totalDuration = pattern.reduce((sum, n) => sum + n.duration, 0) * beatDuration;
-            setTimeout(() => {
-                audioRecorder.stop();
-                isRecording = false;
-                playClick(); // Beep to indicate recording stopped (after stopping recorder)
-            }, totalDuration * 1000);
+            console.log('Could not detect GO! click in recording');
+            return searchStartSample; // Default to expected position
         }
 
         // Analyze recorded audio after recording completes
@@ -561,44 +515,42 @@
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-                // Calculate timing offset
-                // Positive offset means recording started early (before intended time)
-                // Negative offset means recording started late (after intended time)
-                const timeOffset = recordingStartTime - intendedStartTime;
-
                 const sampleRate = audioBuffer.sampleRate;
-                const sampleOffset = Math.floor(timeOffset * sampleRate);
-
-                console.log(`Sample rate: ${sampleRate} Hz`);
-                console.log(`Window size: 4096 samples = ${(4096 / sampleRate * 1000).toFixed(1)}ms`);
-                console.log(`Slice interval: 50ms`);
-                console.log(`Timing offset: ${(timeOffset * 1000).toFixed(1)}ms (${sampleOffset} samples)`);
-                console.log(`Recording started at: ${recordingStartTime.toFixed(3)}s`);
-                console.log(`Intended start was: ${intendedStartTime.toFixed(3)}s`);
-
-                // Extract pitch at each time slice
-                recordedTimeSeries = [];
                 const audioData = audioBuffer.getChannelData(0);
                 const sliceSamples = Math.round(sliceInterval * sampleRate);
                 const windowSize = 4096;
 
+                console.log(`Sample rate: ${sampleRate} Hz`);
                 console.log(`Slice samples: ${sliceSamples} (${(sliceSamples / sampleRate * 1000).toFixed(3)}ms per slice)`);
+                console.log(`Total recording duration: ${(audioData.length / sampleRate * 1000).toFixed(1)}ms`);
 
-                // Determine where to start analyzing based on timing offset
-                // If sampleOffset < 0: recording started early, skip the beginning
-                // If sampleOffset > 0: recording started late, start from beginning and pad later
-                let startSample = sampleOffset < 0 ? Math.abs(sampleOffset) : 0;
+                // We know when we SCHEDULED the GO! click
+                const goClickScheduledTime = goClickTime - recordingStartTime; // seconds into recording
+                const goClickScheduledSample = Math.round(goClickScheduledTime * sampleRate);
+                console.log(`GO! click SCHEDULED at ${(goClickScheduledTime * 1000).toFixed(1)}ms into recording`);
 
-                // Account for round-trip audio latency (output + input)
-                // User hears clicks late, plays late, so their audio appears LATE in recording
-                // We need to shift analysis FORWARD (add compensation)
-                const latencyCompensationSamples = Math.round((roundTripLatencyMs / 1000) * sampleRate);
-                startSample = startSample + latencyCompensationSamples;
+                // Detect where GO! click ACTUALLY appears in the recording
+                const goClickDetectedSample = findGoClickInRecording(audioData, sampleRate);
+                const goClickDetectedTime = goClickDetectedSample / sampleRate;
+                console.log(`GO! click DETECTED at ${(goClickDetectedTime * 1000).toFixed(1)}ms into recording`);
 
-                console.log(`Start analyzing from sample ${startSample} (shifted forward by ${roundTripLatencyMs}ms for latency)`);
+                // The difference is the round-trip latency (output + input)
+                const latencyMs = (goClickDetectedTime - goClickScheduledTime) * 1000;
+                console.log(`Round-trip latency: ${latencyMs.toFixed(1)}ms`);
+
+                // User plays one beat after the detected GO! click
+                const beatSamples = Math.round(beatDuration * sampleRate);
+                const startSample = goClickDetectedSample + beatSamples;
+
+                console.log(`Starting analysis at sample ${startSample} (detected GO! + one beat = ${(startSample / sampleRate * 1000).toFixed(1)}ms)`);
 
                 // Only process exactly as many slices as we expect in the reference
                 const expectedSlices = referenceTimeSeries.length;
+                console.log(`Analyzing ${expectedSlices} slices`);
+                console.log(`Recording has ${Math.floor(audioData.length / sliceSamples)} potential slices`);
+
+                // Extract pitch at each time slice
+                recordedTimeSeries = [];
 
                 // Log timing for first few and transition slices
                 const slicesToLog = [0, 1, 11, 12, 13, 23, 24, 25, 35, 36, 37];
@@ -621,13 +573,6 @@
                     // Detect pitch for this slice
                     const frequency = autoCorrelate(slice, sampleRate);
                     recordedTimeSeries.push(frequency > 0 ? frequency : null);
-                }
-
-                // Only pad if recording started significantly late (more than half a slice)
-                if (sampleOffset > sliceSamples / 2) {
-                    const missedSlices = Math.ceil(sampleOffset / sliceSamples);
-                    console.log(`Recording started late, padding with ${missedSlices} null slices`);
-                    recordedTimeSeries = Array(missedSlices).fill(null).concat(recordedTimeSeries);
                 }
 
                 // Show results

@@ -1,0 +1,191 @@
+// Matching Algorithm
+// Core pattern matching logic extracted from matching-test.html
+const Matching = {
+    tempo: 100, // BPM
+    beatDuration: 0.6, // seconds per beat (60/100)
+    sliceInterval: 0.3, // 8th note slices (half a beat)
+
+    // Sample notes mapping (MIDI numbers)
+    sampleNotes: {
+        'A3': 57, 'B3': 59, 'C4': 60, 'D4': 62,
+        'E4': 64, 'A4': 69, 'E5': 76, 'A5': 81
+    },
+
+    // Convert MIDI to frequency
+    midiToFrequency: function(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+    },
+
+    // Generate reference time series from pattern
+    // Returns array of frequencies (one per slice)
+    generateReferenceTimeSeries: function(pattern) {
+        const series = [];
+        let currentTime = 0;
+
+        console.log('Generating reference time series:');
+        console.log('tempo:', this.tempo, 'BPM');
+        console.log('beatDuration:', this.beatDuration, 'seconds');
+        console.log('sliceInterval:', this.sliceInterval, 'seconds');
+
+        pattern.notes.forEach((note, index) => {
+            const duration = pattern.durations[index];
+            const durationInSeconds = duration * this.beatDuration;
+            const numSlices = Math.round(durationInSeconds / this.sliceInterval);
+            const frequency = this.midiToFrequency(this.sampleNotes[note]);
+
+            console.log(`Note ${index}: ${note}, duration=${duration} beats, durationInSeconds=${durationInSeconds}, numSlices=${numSlices}`);
+
+            for (let i = 0; i < numSlices; i++) {
+                series.push(frequency);
+                currentTime += this.sliceInterval;
+            }
+        });
+
+        console.log('Total reference slices:', series.length);
+        return series;
+    },
+
+    // Detect where the GO! click appears in the recording
+    findGoClickInRecording: function(audioData, sampleRate) {
+        // GO! should be around 4.2s into the recording
+        // (reference pattern 2.4s + 3 beat delays = 2.4s + 1.8s = 4.2s)
+        const searchStartMs = 4000;
+        const searchEndMs = 4600;
+        const searchStartSample = Math.floor((searchStartMs / 1000) * sampleRate);
+        const searchEndSample = Math.floor((searchEndMs / 1000) * sampleRate);
+
+        const checkInterval = 0.01; // Check every 10ms
+        const checkSamples = Math.round(checkInterval * sampleRate);
+
+        let lastClickPosition = -1;
+        let maxRms = 0;
+
+        // Find the loudest transient in the search window
+        for (let windowStart = searchStartSample; windowStart < searchEndSample; windowStart += checkSamples) {
+            const windowEnd = Math.min(windowStart + checkSamples, audioData.length);
+
+            let rms = 0;
+            for (let i = windowStart; i < windowEnd; i++) {
+                rms += audioData[i] * audioData[i];
+            }
+            rms = Math.sqrt(rms / (windowEnd - windowStart));
+
+            if (rms > maxRms && rms > 0.02) {
+                maxRms = rms;
+                lastClickPosition = windowStart;
+            }
+        }
+
+        if (lastClickPosition >= 0) {
+            console.log(`Found GO! click at sample ${lastClickPosition} (${(lastClickPosition / sampleRate * 1000).toFixed(1)}ms, RMS: ${maxRms.toFixed(4)})`);
+            return lastClickPosition;
+        }
+
+        console.log('Could not detect GO! click in recording');
+        return searchStartSample; // Default to expected position
+    },
+
+    // Analyze recorded audio and extract pitch time series
+    analyzeRecording: function(audioBuffer, goClickTime, recordingStartTime) {
+        const sampleRate = audioBuffer.sampleRate;
+        const audioData = audioBuffer.getChannelData(0);
+        const sliceSamples = Math.round(this.sliceInterval * sampleRate);
+        const windowSize = 4096;
+
+        console.log(`Sample rate: ${sampleRate} Hz`);
+        console.log(`Slice samples: ${sliceSamples} (${(sliceSamples / sampleRate * 1000).toFixed(3)}ms per slice)`);
+        console.log(`Total recording duration: ${(audioData.length / sampleRate * 1000).toFixed(1)}ms`);
+
+        // We know when we SCHEDULED the GO! click
+        const goClickScheduledTime = goClickTime - recordingStartTime; // seconds into recording
+        const goClickScheduledSample = Math.round(goClickScheduledTime * sampleRate);
+        console.log(`GO! click SCHEDULED at ${(goClickScheduledTime * 1000).toFixed(1)}ms into recording`);
+
+        // Detect where GO! click ACTUALLY appears in the recording
+        const goClickDetectedSample = this.findGoClickInRecording(audioData, sampleRate);
+        const goClickDetectedTime = goClickDetectedSample / sampleRate;
+        console.log(`GO! click DETECTED at ${(goClickDetectedTime * 1000).toFixed(1)}ms into recording`);
+
+        // The difference is the round-trip latency (output + input)
+        const latencyMs = (goClickDetectedTime - goClickScheduledTime) * 1000;
+        console.log(`Round-trip latency: ${latencyMs.toFixed(1)}ms`);
+
+        // User plays one beat after the detected GO! click
+        const beatSamples = Math.round(this.beatDuration * sampleRate);
+        const startSample = goClickDetectedSample + beatSamples;
+
+        console.log(`Starting analysis at sample ${startSample} (detected GO! + one beat = ${(startSample / sampleRate * 1000).toFixed(1)}ms)`);
+
+        // Extract pitch at each time slice
+        const recordedTimeSeries = [];
+
+        // We'll analyze for the same number of slices as the reference
+        // This will be set by the caller based on the pattern
+        const expectedSlices = Math.round((4 * this.beatDuration) / this.sliceInterval); // 4 beats total
+
+        console.log(`Analyzing ${expectedSlices} slices`);
+        console.log(`Recording has ${Math.floor(audioData.length / sliceSamples)} potential slices`);
+
+        for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
+            const slicePosition = startSample + (sliceIndex * sliceSamples);
+
+            // Analyze FORWARD from this slice position
+            const windowStart = slicePosition;
+            const windowEnd = Math.min(slicePosition + windowSize, audioData.length);
+            const slice = audioData.slice(windowStart, windowEnd);
+
+            // Detect pitch for this slice (using Recording's autoCorrelate)
+            const frequency = Recording.autoCorrelate(slice, sampleRate);
+            recordedTimeSeries.push(frequency > 0 ? frequency : null);
+        }
+
+        console.log('Recorded time series:', recordedTimeSeries.map(f => f ? f.toFixed(1) : 'silence'));
+        return recordedTimeSeries;
+    },
+
+    // Normalize frequency to a base octave (between 200-400 Hz range)
+    normalizeToOctave: function(freq) {
+        if (freq === null || freq <= 0) return null;
+
+        // Bring frequency into the 200-400 Hz range (roughly octave 3)
+        while (freq < 200) freq *= 2;
+        while (freq >= 400) freq /= 2;
+
+        return freq;
+    },
+
+    // Calculate error between reference and recorded
+    calculateError: function(reference, recorded) {
+        // Make sure they're the same length
+        const minLength = Math.min(reference.length, recorded.length);
+        let totalError = 0;
+
+        for (let i = 0; i < minLength; i++) {
+            const refFreq = reference[i];
+            const recFreq = recorded[i];
+
+            if (refFreq === null && recFreq === null) {
+                // Both silence - perfect match
+                continue;
+            } else if (refFreq === null || recFreq === null) {
+                // One is silence, one is not - large error
+                totalError += 10;
+            } else {
+                // Both have pitch - normalize to same octave before comparing
+                const normalizedRef = this.normalizeToOctave(refFreq);
+                const normalizedRec = this.normalizeToOctave(recFreq);
+
+                // Calculate frequency difference in cents (musical distance)
+                const cents = Math.abs(1200 * Math.log2(normalizedRec / normalizedRef));
+
+                // Convert cents to error score (0 cents = 0 error, 100 cents = ~8.3 error)
+                // This makes it more forgiving for small pitch variations
+                const error = Math.min(cents / 12, 10); // Cap at 10 per slice
+                totalError += error;
+            }
+        }
+
+        // Average error per slice
+        return minLength > 0 ? totalError / minLength : 100;
+    }
+};

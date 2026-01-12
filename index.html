@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Violin Quest! 🎻</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>Violin Quest!</h1>
+            <div class="progress" id="progress-container">
+                <span id="question-counter">Question 1 of 10</span>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Category Selection Screen -->
+        <div class="menu-screen" id="category-screen">
+            <h2 class="menu-title">Choose a Category</h2>
+            <div class="menu-buttons">
+                <button class="menu-btn" data-category="see-saw">See-Saw</button>
+                <button class="menu-btn disabled" data-category="twinkle">Twinkle<br><span class="coming-soon">Coming Soon</span></button>
+                <button class="menu-btn disabled" data-category="lightly-row">Lightly Row<br><span class="coming-soon">Coming Soon</span></button>
+                <button class="menu-btn disabled" data-category="wind">Song of the Wind<br><span class="coming-soon">Coming Soon</span></button>
+            </div>
+        </div>
+
+        <!-- Level Selection Screen -->
+        <div class="menu-screen hidden" id="level-screen">
+            <h2 class="menu-title">Choose a Level</h2>
+            <div class="menu-buttons">
+                <button class="menu-btn" data-level="1">Level 1</button>
+                <button class="menu-btn" data-level="2">Level 2</button>
+                <button class="menu-btn" data-level="3">Level 3</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <main class="game-main hidden" id="game-screen">
+            <div class="pattern-display" id="pattern-display">
+                <div id="pattern-notes"></div>
+            </div>
+
+            <div class="status-display" id="status-display">Click to start</div>
+
+            <div class="feedback-visual" id="feedback-visual"></div>
+
+            <div class="recording-indicator hidden" id="recording-indicator">
+                <span class="red-dot"></span> RECORDING
+            </div>
+        </main>
+
+        <!-- Celebration Screen -->
+        <div class="celebration-screen hidden" id="celebration-screen">
+            <canvas id="fireworks-canvas"></canvas>
+            <div class="celebration-message">
+                <h2 id="celebration-title">Great Job!</h2>
+                <p id="celebration-score">You got 8 out of 10!</p>
+                <button class="play-again-btn" id="play-again-btn">Play Again!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="sounds.js"></script>
+    <script src="audio.js"></script>
+    <script src="recording.js"></script>
+    <script src="matching.js"></script>
+    <script src="patterns.js"></script>
+    <script src="game.js"></script>
+    <script src="celebrations.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>

@@ -48,12 +48,15 @@ const Matching = {
 
     // Detect where the GO! click appears in the recording
     findGoClickInRecording: function(audioData, sampleRate) {
-        // GO! should be around 4.2s into the recording
-        // (reference pattern 2.4s + 3 countdown beats = 2.4s + 1.8s = 4.2s)
-        const searchStartMs = 4000;
-        const searchEndMs = 4600;
+        // GO! should be at: pattern duration (4 beats) + 3 countdown beats = 7 beats total
+        const expectedGoTimeSeconds = 7 * this.beatDuration;
+        // Search window: ±300ms around expected time
+        const searchStartMs = (expectedGoTimeSeconds - 0.3) * 1000;
+        const searchEndMs = (expectedGoTimeSeconds + 0.3) * 1000;
         const searchStartSample = Math.floor((searchStartMs / 1000) * sampleRate);
         const searchEndSample = Math.floor((searchEndMs / 1000) * sampleRate);
+
+        console.log(`Searching for GO! click around ${expectedGoTimeSeconds.toFixed(2)}s (${searchStartMs.toFixed(0)}-${searchEndMs.toFixed(0)}ms) at ${this.tempo} BPM`);
 
         const checkInterval = 0.01; // Check every 10ms
         const checkSamples = Math.round(checkInterval * sampleRate);

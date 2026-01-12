@@ -272,6 +272,45 @@ body {
     display: none !important;
 }
 
+.game-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.control-btn {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-family: inherit;
+}
+
+.control-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#pause-btn {
+    background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+}
+
 @media (max-width: 600px) {
     .game-header h1 {
         font-size: 2rem;
@@ -283,5 +322,10 @@ body {
 
     #pattern-notes {
         font-size: 2rem;
+    }
+
+    .control-btn {
+        font-size: 1.2rem;
+        padding: 12px 24px;
     }
 }

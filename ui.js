@@ -62,6 +62,28 @@ const UI = {
             }
             this.showCategoryScreen();
         });
+
+        // Start button
+        const startBtn = document.getElementById('start-btn');
+        startBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            if (Game.isPaused) {
+                Game.resumeGame();
+            } else {
+                Game.startGame();
+            }
+        });
+
+        // Pause button
+        const pauseBtn = document.getElementById('pause-btn');
+        pauseBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            Game.pauseGame();
+        });
     },
 
     // Update the pattern display
@@ -121,6 +143,24 @@ const UI = {
         setTimeout(() => {
             feedback.classList.remove('wrong');
         }, 900);
+    },
+
+    // Show/hide start button
+    showStartButton: function() {
+        document.getElementById('start-btn').classList.remove('hidden');
+    },
+
+    hideStartButton: function() {
+        document.getElementById('start-btn').classList.add('hidden');
+    },
+
+    // Show/hide pause button
+    showPauseButton: function() {
+        document.getElementById('pause-btn').classList.remove('hidden');
+    },
+
+    hidePauseButton: function() {
+        document.getElementById('pause-btn').classList.add('hidden');
     },
 
     // Show the celebration screen

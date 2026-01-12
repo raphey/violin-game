@@ -10,17 +10,51 @@ const Game = {
     level: null,
     tolerance: 5.0,
 
-    // Initialize game
-    init: async function(category, level) {
+    isPaused: false,
+    isPlaying: false,
+
+    // Initialize game (don't auto-start)
+    init: function(category, level) {
         this.category = category;
         this.level = level;
         this.currentQuestionNum = 0;
         this.correctCount = 0;
+        this.isPaused = false;
+        this.isPlaying = false;
 
         console.log(`Game initialized: ${category} Level ${level}`);
 
-        // Start first question
+        // Show initial state
+        UI.updateProgress(1, this.totalQuestions);
+        UI.showStatus('Click Start to begin');
+        UI.showStartButton();
+    },
+
+    // Start the game (called when Start button clicked)
+    startGame: async function() {
+        if (this.isPlaying) return;
+
+        this.isPlaying = true;
+        UI.hideStartButton();
+        UI.showPauseButton();
+
         await this.nextQuestion();
+    },
+
+    // Pause the game
+    pauseGame: function() {
+        this.isPaused = true;
+        UI.showStatus('⏸️ Paused - Click Start to continue');
+        UI.hidePauseButton();
+        UI.showStartButton();
+    },
+
+    // Resume from pause
+    resumeGame: async function() {
+        this.isPaused = false;
+        UI.hideStartButton();
+        UI.showPauseButton();
+        // Current question will continue when user clicks Start again
     },
 
     // Play next question in sequence

@@ -148,18 +148,11 @@ const Audio = {
         clickOsc.stop(this.audioContext.currentTime + 0.05);
     },
 
-    // Play full countdown: 4 quiet clicks + 4 loud clicks with visual updates
+    // Play countdown: 4 loud clicks with visual updates (no silent countdown)
     playCountdown: async function() {
         // Resume audio context if suspended
         if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
-        }
-
-        // 4 silent beats with quiet clicks
-        UI.showStatus('Listen to the metronome...');
-        for (let i = 0; i < 4; i++) {
-            this.playClick(false); // Quiet click
-            await new Promise(resolve => setTimeout(resolve, this.beatDuration * 1000));
         }
 
         // 4 loud clicks with countdown text

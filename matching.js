@@ -175,12 +175,13 @@ const Matching = {
                 // One is silence, one is not - large error
                 totalError += 10;
             } else {
-                // Both have pitch - normalize to same octave before comparing
-                const normalizedRef = this.normalizeToOctave(refFreq);
-                const normalizedRec = this.normalizeToOctave(recFreq);
+                // Both have pitch - find closest octave match
+                // Calculate which octave shift of recFreq is closest to refFreq
+                const octaveShift = Math.round(Math.log2(refFreq / recFreq));
+                const recFreqShifted = recFreq * Math.pow(2, octaveShift);
 
                 // Calculate frequency difference in cents (musical distance)
-                const cents = Math.abs(1200 * Math.log2(normalizedRec / normalizedRef));
+                const cents = Math.abs(1200 * Math.log2(recFreqShifted / refFreq));
 
                 // Convert cents to error score (0 cents = 0 error, 100 cents = ~8.3 error)
                 // This makes it more forgiving for small pitch variations

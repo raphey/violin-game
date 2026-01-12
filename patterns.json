@@ -16,6 +16,10 @@
     ],
     "level2": [
       {
+        "notes": ["A4", "A4"],
+        "durations": [2, 2]
+      },
+      {
         "notes": ["A4", "B4"],
         "durations": [2, 2]
       },
@@ -24,7 +28,19 @@
         "durations": [2, 2]
       },
       {
+        "notes": ["B4", "B4"],
+        "durations": [2, 2]
+      },
+      {
         "notes": ["B4", "A4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["B4", "E5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "E5"],
         "durations": [2, 2]
       },
       {
@@ -32,17 +48,71 @@
         "durations": [2, 2]
       },
       {
-        "notes": ["B4", "E5"],
+        "notes": ["E5", "B4"],
         "durations": [2, 2]
       }
     ],
     "level3": [
       {
+        "notes": ["A4", "A4", "A4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["A4", "A4", "B4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["A4", "A4", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["B4", "B4", "A4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["B4", "B4", "B4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["B4", "B4", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["E5", "E5", "A4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["E5", "E5", "B4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["E5", "E5", "E5"],
+        "durations": [1, 1, 2]
+      }
+    ],
+    "level4": [
+      {
+        "notes": ["A4", "A4", "A4", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "A4", "B4", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
         "notes": ["A4", "B4", "A4", "E5"],
         "durations": [1, 1, 1, 1]
       },
       {
-        "notes": ["E5", "A4", "B4", "A4"],
+        "notes": ["A4", "B4", "B4", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "E5", "B4", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "B4", "A4", "E5"],
         "durations": [1, 1, 1, 1]
       },
       {
@@ -50,7 +120,15 @@
         "durations": [1, 1, 1, 1]
       },
       {
-        "notes": ["A4", "E5", "B4", "A4"],
+        "notes": ["B4", "E5", "E5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "A4", "B4", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "E5", "A4", "B4"],
         "durations": [1, 1, 1, 1]
       }
     ]
@@ -58,16 +136,19 @@
   "twinkle": {
     "level1": [],
     "level2": [],
-    "level3": []
+    "level3": [],
+    "level4": []
   },
   "lightly-row": {
     "level1": [],
     "level2": [],
-    "level3": []
+    "level3": [],
+    "level4": []
   },
   "wind": {
     "level1": [],
     "level2": [],
-    "level3": []
+    "level3": [],
+    "level4": []
   }
 }

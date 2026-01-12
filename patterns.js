@@ -21,6 +21,9 @@ const Patterns = {
                         { notes: ['A4', 'B4'], durations: [2, 2] }
                     ],
                     'level3': [
+                        { notes: ['A4', 'A4', 'B4'], durations: [1, 1, 2] }
+                    ],
+                    'level4': [
                         { notes: ['A4', 'B4', 'A4', 'E5'], durations: [1, 1, 1, 1] }
                     ]
                 }

@@ -167,15 +167,17 @@ const Game = {
         console.log(`\n=== GAME OVER ===`);
         console.log(`Score: ${this.correctCount}/${this.totalQuestions}`);
 
-        // Determine celebration level
+        // Determine celebration level based on percentage
+        const percentage = (this.correctCount / this.totalQuestions) * 100;
         let celebrationLevel;
-        if (this.correctCount === this.totalQuestions) {
+
+        if (percentage === 100) {
             celebrationLevel = 'perfect';
-        } else if (this.correctCount >= 9) {
+        } else if (percentage >= 90) {
             celebrationLevel = 'great';
-        } else if (this.correctCount >= 8) {
+        } else if (percentage >= 80) {
             celebrationLevel = 'good';
-        } else if (this.correctCount >= 7) {
+        } else if (percentage >= 70) {
             celebrationLevel = 'okay';
         } else {
             celebrationLevel = 'keep_trying';

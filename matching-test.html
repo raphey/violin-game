@@ -335,11 +335,18 @@
             const series = [];
             let currentTime = 0;
 
-            pattern.forEach(noteInfo => {
+            console.log('Generating reference time series:');
+            console.log('tempo:', tempo, 'BPM');
+            console.log('beatDuration:', beatDuration, 'seconds');
+            console.log('sliceInterval:', sliceInterval, 'seconds');
+
+            pattern.forEach((noteInfo, index) => {
                 const { note, duration } = noteInfo;
                 const durationInSeconds = duration * beatDuration;
-                const numSlices = Math.floor(durationInSeconds / sliceInterval);
+                const numSlices = Math.round(durationInSeconds / sliceInterval);
                 const frequency = midiToFrequency(sampleNotes[note]);
+
+                console.log(`Note ${index}: ${note}, duration=${duration} beats, durationInSeconds=${durationInSeconds}, numSlices=${numSlices}`);
 
                 for (let i = 0; i < numSlices; i++) {
                     series.push(frequency);
@@ -347,6 +354,7 @@
                 }
             });
 
+            console.log('Total reference slices:', series.length);
             return series;
         }
 
@@ -419,7 +427,12 @@
                 // Start from the correct position based on timing offset
                 const startSample = Math.max(0, sampleOffset);
 
-                for (let i = startSample; i < audioData.length; i += sliceSamples) {
+                // Only process exactly as many slices as we expect in the reference
+                const expectedSlices = referenceTimeSeries.length;
+
+                for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
+                    const i = startSample + (sliceIndex * sliceSamples);
+
                     // Extract window for this slice
                     const end = Math.min(i + windowSize, audioData.length);
                     const slice = audioData.slice(i, end);

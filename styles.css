@@ -228,15 +228,15 @@ body {
 .menu-buttons {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
     max-width: 400px;
-    margin: 0 auto;
+    margin: 0 auto 20px auto;
 }
 
 .menu-btn {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: bold;
-    padding: 30px;
+    padding: 20px;
     border: none;
     border-radius: 20px;
     background: linear-gradient(135deg, #10b981 0%, #8b5cf6 100%);

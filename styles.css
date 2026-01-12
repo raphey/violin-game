@@ -302,13 +302,10 @@ body {
     transform: translateY(0);
 }
 
-.control-btn:disabled {
+.control-btn:disabled,
+.control-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
-}
-
-#pause-btn {
-    background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
 }
 
 @media (max-width: 600px) {

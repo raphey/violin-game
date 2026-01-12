@@ -66,23 +66,12 @@ const UI = {
         // Start button
         const startBtn = document.getElementById('start-btn');
         startBtn.addEventListener('click', () => {
-            if (typeof Sounds !== 'undefined') {
-                Sounds.playClick();
-            }
-            if (Game.isPaused) {
-                Game.resumeGame();
-            } else {
-                Game.startGame();
-            }
-        });
+            if (startBtn.disabled) return;
 
-        // Pause button
-        const pauseBtn = document.getElementById('pause-btn');
-        pauseBtn.addEventListener('click', () => {
             if (typeof Sounds !== 'undefined') {
                 Sounds.playClick();
             }
-            Game.pauseGame();
+            Game.startGame();
         });
     },
 
@@ -145,22 +134,17 @@ const UI = {
         }, 900);
     },
 
-    // Show/hide start button
-    showStartButton: function() {
-        document.getElementById('start-btn').classList.remove('hidden');
+    // Enable/disable start button
+    enableStartButton: function() {
+        const startBtn = document.getElementById('start-btn');
+        startBtn.disabled = false;
+        startBtn.classList.remove('disabled');
     },
 
-    hideStartButton: function() {
-        document.getElementById('start-btn').classList.add('hidden');
-    },
-
-    // Show/hide pause button
-    showPauseButton: function() {
-        document.getElementById('pause-btn').classList.remove('hidden');
-    },
-
-    hidePauseButton: function() {
-        document.getElementById('pause-btn').classList.add('hidden');
+    disableStartButton: function() {
+        const startBtn = document.getElementById('start-btn');
+        startBtn.disabled = true;
+        startBtn.classList.add('disabled');
     },
 
     // Show the celebration screen

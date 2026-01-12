@@ -125,6 +125,8 @@ const Game = {
             // Step 7: Check answer
             const error = Matching.calculateError(this.referenceTimeSeries, recordedTimeSeries);
             console.log(`Error: ${error.toFixed(2)}, Tolerance: ${this.tolerance}`);
+            console.log('Reference:', this.referenceTimeSeries.map(f => f ? f.toFixed(1) : 'null'));
+            console.log('Recorded:', recordedTimeSeries.map(f => f ? f.toFixed(1) : 'null'));
 
             const passed = error <= this.tolerance;
 

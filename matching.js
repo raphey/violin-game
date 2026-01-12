@@ -8,7 +8,7 @@ const Matching = {
     // Sample notes mapping (MIDI numbers)
     sampleNotes: {
         'A3': 57, 'B3': 59, 'C4': 60, 'D4': 62,
-        'E4': 64, 'A4': 69, 'E5': 76, 'A5': 81
+        'E4': 64, 'A4': 69, 'B4': 71, 'E5': 76, 'A5': 81
     },
 
     // Convert MIDI to frequency

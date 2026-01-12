@@ -152,8 +152,8 @@
 
         <div class="tolerance-control">
             <label>Tolerance (Error Threshold):</label>
-            <input type="range" id="tolerance-slider" min="0" max="100" value="30" step="1">
-            <div class="tolerance-value" id="tolerance-value">30</div>
+            <input type="range" id="tolerance-slider" min="0" max="10" value="3" step="0.1">
+            <div class="tolerance-value" id="tolerance-value">3</div>
             <p style="font-size: 12px; margin-top: 10px;">
                 Lower = stricter matching. Higher = more forgiving.
             </p>
@@ -289,22 +289,31 @@
             setTimeout(async () => {
                 // Countdown with clicks
                 document.getElementById('status').textContent = 'Get ready... 1';
+                const click1Time = audioContext.currentTime;
+                console.log(`Click 1 at: ${click1Time.toFixed(3)}s`);
                 playClick();
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
                 document.getElementById('status').textContent = '2';
+                const click2Time = audioContext.currentTime;
+                console.log(`Click 2 at: ${click2Time.toFixed(3)}s`);
                 playClick();
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
                 document.getElementById('status').textContent = 'Ready';
+                const click3Time = audioContext.currentTime;
+                console.log(`Click 3 at: ${click3Time.toFixed(3)}s`);
                 playClick();
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
                 document.getElementById('status').textContent = 'GO!';
+                const click4Time = audioContext.currentTime;
+                console.log(`Click 4 (GO!) at: ${click4Time.toFixed(3)}s`);
                 playClick();
 
                 // Calculate exact time when recording should start
                 intendedStartTime = audioContext.currentTime + beatDuration;
+                console.log(`Intended recording start time: ${intendedStartTime.toFixed(3)}s (GO! + ${beatDuration}s)`);
 
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
@@ -383,6 +392,7 @@
 
             // Record actual start time
             recordingStartTime = audioContext.currentTime;
+            console.log(`Recording actually started at: ${recordingStartTime.toFixed(3)}s`);
             audioRecorder.start();
             isRecording = true;
 
@@ -431,11 +441,14 @@
                 const expectedSlices = referenceTimeSeries.length;
 
                 for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
-                    const i = startSample + (sliceIndex * sliceSamples);
+                    const sliceCenter = startSample + (sliceIndex * sliceSamples);
 
-                    // Extract window for this slice
-                    const end = Math.min(i + windowSize, audioData.length);
-                    const slice = audioData.slice(i, end);
+                    // Center the analysis window on this slice position
+                    // This compensates for the fact that pitch detection represents
+                    // the average frequency across the window, not just the start
+                    const windowStart = Math.max(0, sliceCenter - Math.floor(windowSize / 2));
+                    const windowEnd = Math.min(windowStart + windowSize, audioData.length);
+                    const slice = audioData.slice(windowStart, windowEnd);
 
                     // Detect pitch for this slice
                     const frequency = autoCorrelate(slice, sampleRate);
@@ -462,7 +475,7 @@
         function stopRecording() {
             // Compare and show results
             const error = calculateError(referenceTimeSeries, recordedTimeSeries);
-            const tolerance = parseInt(document.getElementById('tolerance-slider').value);
+            const tolerance = parseFloat(document.getElementById('tolerance-slider').value);
             const passed = error <= tolerance;
 
             showResults(error, tolerance, passed);

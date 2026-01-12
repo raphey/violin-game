@@ -292,6 +292,28 @@ const UI = {
         categoryScreen.classList.add('hidden');
         levelScreen.classList.remove('hidden');
         progressContainer.classList.add('hidden');
+
+        // Enable/disable level buttons based on available patterns
+        if (typeof Patterns !== 'undefined' && Patterns.allPatterns) {
+            const categoryPatterns = Patterns.allPatterns[this.selectedCategory];
+            const levelButtons = document.querySelectorAll('.menu-btn[data-level]');
+
+            levelButtons.forEach(btn => {
+                const level = parseInt(btn.getAttribute('data-level'));
+                const levelKey = `level${level}`;
+                const hasPatterns = categoryPatterns &&
+                                  categoryPatterns[levelKey] &&
+                                  categoryPatterns[levelKey].length > 0;
+
+                if (hasPatterns) {
+                    btn.classList.remove('disabled');
+                    btn.disabled = false;
+                } else {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                }
+            });
+        }
     },
 
     // Start the game

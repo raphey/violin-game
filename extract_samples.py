@@ -21,9 +21,9 @@ except ImportError:
 
 # MIDI notes to extract (can be customized)
 NOTES_TO_EXTRACT = {
-    55: "A3",
-    57: "B3",
-    59: "C4",
+    55: "G3",
+    57: "A3",
+    59: "B3",
     62: "D4",
     64: "E4",
     69: "A4",

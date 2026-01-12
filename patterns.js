@@ -20,17 +20,9 @@ const Patterns = {
                         { notes: ['A4'], durations: [4] },
                         { notes: ['E5'], durations: [4] }
                     ],
-                    'level2': [
-                        { notes: ['G3', 'D4'], durations: [2, 2] },
-                        { notes: ['D4', 'A4'], durations: [2, 2] },
-                        { notes: ['A4', 'E5'], durations: [2, 2] }
-                    ],
-                    'level3': [
-                        { notes: ['G3', 'D4', 'A4', 'E5'], durations: [1, 1, 1, 1] }
-                    ],
-                    'level4': [
-                        { notes: ['G3', 'D4', 'G3', 'D4'], durations: [1, 1, 1, 1] }
-                    ]
+                    'level2': [],
+                    'level3': [],
+                    'level4': []
                 },
                 'see-saw': {
                     'level1': [

@@ -8,9 +8,9 @@ const Audio = {
 
     // Available samples and their MIDI note numbers
     sampleNotes: {
+        'G3': 55,
         'A3': 57,
         'B3': 59,
-        'C4': 60,
         'D4': 62,
         'E4': 64,
         'A4': 69,

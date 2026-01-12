@@ -72,8 +72,6 @@ see-saw:
       durations: [2, 1, 1]
 
   level4:
-    - notes: [A4, A4, A4, A4]
-      durations: [1, 1, 1, 1]
     - notes: [A4, A4, B4, E5]
       durations: [1, 1, 1, 1]
     - notes: [A4, B4, A4, E5]

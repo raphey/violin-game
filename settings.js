@@ -15,7 +15,7 @@ const Settings = {
     init: function() {
         this.current = {
             tempo: parseInt(localStorage.getItem('violin-game-tempo')) || this.defaults.tempo,
-            tolerance: parseInt(localStorage.getItem('violin-game-tolerance')) || this.defaults.tolerance,
+            tolerance: parseFloat(localStorage.getItem('violin-game-tolerance')) || this.defaults.tolerance,
             levelLength: parseInt(localStorage.getItem('violin-game-levelLength')) || this.defaults.levelLength
         };
 

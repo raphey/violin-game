@@ -115,7 +115,7 @@ const UI = {
         const toleranceSlider = document.getElementById('tolerance-slider');
         const toleranceValue = document.getElementById('tolerance-value');
         toleranceSlider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
+            const value = parseFloat(e.target.value);
             toleranceValue.textContent = value;
             Settings.set('tolerance', value);
         });

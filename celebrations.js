@@ -124,7 +124,7 @@ const Celebrations = {
     animate: function() {
         if (!this.ctx) return;
 
-        this.ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+        this.ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Update and draw particles

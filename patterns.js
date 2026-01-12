@@ -13,6 +13,25 @@ const Patterns = {
             console.error('Error loading patterns:', error);
             // Fallback patterns if loading fails
             this.allPatterns = {
+                'open-strings': {
+                    'level1': [
+                        { notes: ['G3'], durations: [4] },
+                        { notes: ['D4'], durations: [4] },
+                        { notes: ['A4'], durations: [4] },
+                        { notes: ['E5'], durations: [4] }
+                    ],
+                    'level2': [
+                        { notes: ['G3', 'D4'], durations: [2, 2] },
+                        { notes: ['D4', 'A4'], durations: [2, 2] },
+                        { notes: ['A4', 'E5'], durations: [2, 2] }
+                    ],
+                    'level3': [
+                        { notes: ['G3', 'D4', 'A4', 'E5'], durations: [1, 1, 1, 1] }
+                    ],
+                    'level4': [
+                        { notes: ['G3', 'D4', 'G3', 'D4'], durations: [1, 1, 1, 1] }
+                    ]
+                },
                 'see-saw': {
                     'level1': [
                         { notes: ['A4', 'A4'], durations: [2, 2] }

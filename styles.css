@@ -214,15 +214,15 @@ body {
 
 /* Menu Screens */
 .menu-screen {
-    padding: 60px 40px;
+    padding: 40px 40px;
     text-align: center;
-    min-height: 650px;
+    min-height: auto;
 }
 
 .menu-title {
     font-size: 2.5rem;
     color: #333;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
 }
 
 .menu-buttons {
@@ -270,7 +270,7 @@ body {
 
 /* Settings Button */
 .settings-btn {
-    margin-top: 40px;
+    margin-top: 20px;
     padding: 12px 30px;
     font-size: 1.2rem;
     font-weight: bold;

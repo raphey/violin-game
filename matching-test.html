@@ -145,15 +145,15 @@
 
         <div class="info">
             <h3>Test Pattern:</h3>
-            <div class="pattern">A4 - A4 - E5 - E5</div>
+            <div class="pattern">A4 - E5 - A5 - E5</div>
             <p><strong>4 beats total</strong> (1 beat per note) at 100 BPM</p>
             <p>Play each note for the full beat duration</p>
         </div>
 
         <div class="tolerance-control">
             <label>Tolerance (Error Threshold):</label>
-            <input type="range" id="tolerance-slider" min="0" max="10" value="3" step="0.1">
-            <div class="tolerance-value" id="tolerance-value">3</div>
+            <input type="range" id="tolerance-slider" min="0" max="10" value="3.5" step="0.1">
+            <div class="tolerance-value" id="tolerance-value">3.5</div>
             <p style="font-size: 12px; margin-top: 10px;">
                 Lower = stricter matching. Higher = more forgiving.
             </p>
@@ -191,15 +191,21 @@
         const sliceInterval = 0.05; // 50ms slices
         const pattern = [
             { note: 'A4', duration: 1.0 },
-            { note: 'A4', duration: 1.0 },
             { note: 'E5', duration: 1.0 },
+            { note: 'A5', duration: 1.0 },
             { note: 'E5', duration: 1.0 }
         ];
 
         // Samples and their MIDI numbers
         const sampleNotes = {
+            'A3': 57,
+            'B3': 59,
+            'C4': 60,
+            'D4': 62,
+            'E4': 64,
             'A4': 69,
-            'E5': 76
+            'E5': 76,
+            'A5': 81
         };
 
         let referenceTimeSeries = [];
@@ -308,12 +314,15 @@
 
                 document.getElementById('status').textContent = 'GO!';
                 const click4Time = audioContext.currentTime;
+                const outputLatency = audioContext.outputLatency || 0;
                 console.log(`Click 4 (GO!) at: ${click4Time.toFixed(3)}s`);
+                console.log(`Audio output latency: ${(outputLatency * 1000).toFixed(1)}ms`);
                 playClick();
 
                 // Calculate exact time when recording should start
-                intendedStartTime = audioContext.currentTime + beatDuration;
-                console.log(`Intended recording start time: ${intendedStartTime.toFixed(3)}s (GO! + ${beatDuration}s)`);
+                // Account for output latency - user hears the click later than we scheduled it
+                intendedStartTime = audioContext.currentTime + beatDuration + outputLatency;
+                console.log(`Intended recording start time: ${intendedStartTime.toFixed(3)}s (GO! + ${beatDuration}s + ${(outputLatency * 1000).toFixed(1)}ms latency)`);
 
                 await new Promise(resolve => setTimeout(resolve, beatDuration * 1000));
 
@@ -424,6 +433,9 @@
                 const sampleRate = audioBuffer.sampleRate;
                 const sampleOffset = Math.floor(timeOffset * sampleRate);
 
+                console.log(`Sample rate: ${sampleRate} Hz`);
+                console.log(`Window size: 4096 samples = ${(4096 / sampleRate * 1000).toFixed(1)}ms`);
+                console.log(`Slice interval: 50ms`);
                 console.log(`Timing offset: ${(timeOffset * 1000).toFixed(1)}ms (${sampleOffset} samples)`);
                 console.log(`Recording started at: ${recordingStartTime.toFixed(3)}s`);
                 console.log(`Intended start was: ${intendedStartTime.toFixed(3)}s`);
@@ -431,8 +443,10 @@
                 // Extract pitch at each time slice
                 recordedTimeSeries = [];
                 const audioData = audioBuffer.getChannelData(0);
-                const sliceSamples = Math.floor(sliceInterval * sampleRate);
+                const sliceSamples = Math.round(sliceInterval * sampleRate);
                 const windowSize = 4096;
+
+                console.log(`Slice samples: ${sliceSamples} (${(sliceSamples / sampleRate * 1000).toFixed(3)}ms per slice)`);
 
                 // Start from the correct position based on timing offset
                 const startSample = Math.max(0, sampleOffset);
@@ -441,12 +455,17 @@
                 const expectedSlices = referenceTimeSeries.length;
 
                 for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
-                    const sliceCenter = startSample + (sliceIndex * sliceSamples);
+                    const slicePosition = startSample + (sliceIndex * sliceSamples);
 
-                    // Center the analysis window on this slice position
-                    // This compensates for the fact that pitch detection represents
-                    // the average frequency across the window, not just the start
-                    const windowStart = Math.max(0, sliceCenter - Math.floor(windowSize / 2));
+                    // For the analysis window:
+                    // - If we have enough buffer before slicePosition, center the window
+                    // - Otherwise, start from slicePosition (don't look before the start)
+                    const halfWindow = Math.floor(windowSize / 2);
+                    const canCenter = slicePosition >= startSample + halfWindow;
+
+                    const windowStart = canCenter
+                        ? slicePosition - halfWindow
+                        : slicePosition;
                     const windowEnd = Math.min(windowStart + windowSize, audioData.length);
                     const slice = audioData.slice(windowStart, windowEnd);
 

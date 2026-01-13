@@ -134,7 +134,6 @@ const Game = {
         console.log(`✓ CORRECT! (${this.correctCount}/${this.currentQuestionNum})`);
 
         UI.showStatus('Correct!');
-        UI.showCorrectFeedback();
 
         // Play coin sound
         if (typeof Sounds !== 'undefined') {
@@ -152,7 +151,6 @@ const Game = {
         console.log(`✗ WRONG (${this.correctCount}/${this.currentQuestionNum})`);
 
         UI.showStatus('Try another one!');
-        UI.showWrongFeedback();
 
         // No sound for wrong answer (per requirements)
 

@@ -94,7 +94,6 @@ const Game = {
 
             // Step 5: Stop recording and get audio buffer
             UI.showRecordingIndicator(false);
-            UI.showStatus('Analyzing...');
             const recordingInfo = await Recording.stopRecording();
 
             // Step 6: Analyze recording

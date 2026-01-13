@@ -141,7 +141,7 @@ const Audio = {
         clickOsc.connect(clickGain);
         clickGain.connect(this.audioContext.destination);
 
-        clickOsc.frequency.value = 1000;
+        clickOsc.frequency.value = 880; // A5
         clickGain.gain.value = loud ? 0.3 : 0.1; // Loud for countdown, quiet for silent
 
         clickOsc.start(this.audioContext.currentTime);

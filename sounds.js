@@ -100,6 +100,20 @@ const Sounds = {
             noteDuration = 0.12;
             noteDelay = 0.07; // Triplet eighth note feel
             oscillatorType = 'triangle';
+        } else if (category === 'twinkle') {
+            // Eighth notes: D D C# C# B E A
+            notes = [
+                587.33,  // D5
+                587.33,  // D5
+                554.37,  // C#5
+                554.37,  // C#5
+                493.88,  // B4
+                659.25,  // E5
+                880.00   // A5
+            ];
+            noteDuration = 0.15;
+            noteDelay = 0.12; // Eighth note feel
+            oscillatorType = 'triangle';
         } else {
             // Default: A major 7th arpeggio
             notes = [

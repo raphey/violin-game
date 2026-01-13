@@ -139,24 +139,32 @@ const UI = {
 
     // Update the pattern display
     updatePattern: function(pattern) {
-        const patternDisplay = document.getElementById('pattern-notes');
+        const patternDisplay = document.getElementById('pattern-display');
+        const patternNotes = document.getElementById('pattern-notes');
 
         // Only show notes if setting is enabled
         if (Settings.get('showNotes')) {
+            patternDisplay.style.display = 'block';
             const notesText = pattern.notes.map((note, i) => {
                 const beats = pattern.durations[i];
                 return `${note} (${beats}♩)`;
             }).join(' - ');
-            patternDisplay.textContent = notesText;
+            patternNotes.textContent = notesText;
         } else {
-            patternDisplay.textContent = '';
+            patternDisplay.style.display = 'none';
+            patternNotes.textContent = '';
         }
     },
 
     // Clear the pattern display
     clearPattern: function() {
-        const patternDisplay = document.getElementById('pattern-notes');
-        patternDisplay.textContent = '';
+        const patternDisplay = document.getElementById('pattern-display');
+        const patternNotes = document.getElementById('pattern-notes');
+
+        if (!Settings.get('showNotes')) {
+            patternDisplay.style.display = 'none';
+        }
+        patternNotes.textContent = '';
     },
 
     // Update the progress bar

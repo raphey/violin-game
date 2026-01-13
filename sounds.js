@@ -24,7 +24,7 @@ const Sounds = {
         oscillator.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
 
-        oscillator.frequency.value = 800;
+        oscillator.frequency.value = 659.25; // E5
         oscillator.type = 'sine';
 
         gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);

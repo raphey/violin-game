@@ -4,7 +4,7 @@ const Settings = {
     // Default values
     defaults: {
         tempo: 90,        // BPM (60-120)
-        tolerance: 7,     // Error threshold (2-10)
+        tolerance: 5,     // Error threshold (2-10)
         levelLength: 10,  // Questions per level (5-15)
         showNotes: false  // Show note names (true/false)
     },

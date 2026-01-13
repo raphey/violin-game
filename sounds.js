@@ -117,6 +117,20 @@ const Sounds = {
             noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
             noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
+        } else if (category === 'lightly-row') {
+            // Eighth notes: scale degrees 1 3 5 5 3 5 8 in A major
+            notes = [
+                440.00,  // A4 (1)
+                554.37,  // C#5 (3)
+                659.25,  // E5 (5)
+                659.25,  // E5 (5)
+                554.37,  // C#5 (3)
+                659.25,  // E5 (5)
+                880.00   // A5 (8)
+            ];
+            noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
+            noteDuration = noteDelay * 0.85; // Smooth and flowing
+            oscillatorType = 'triangle';
         } else {
             // Default: A major 7th arpeggio
             notes = [

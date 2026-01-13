@@ -12,15 +12,29 @@ const Recording = {
     init: async function() {
         try {
             console.log('Requesting microphone access...');
-            this.microphoneStream = await navigator.mediaDevices.getUserMedia({
+
+            // Use advanced constraints for better control on iPad/iOS
+            const constraints = {
                 audio: {
-                    echoCancellation: false,
-                    autoGainControl: false,
-                    noiseSuppression: false
+                    echoCancellation: { exact: false },
+                    autoGainControl: { exact: false },
+                    noiseSuppression: { exact: false },
+                    // Additional constraints that might help on iOS
+                    channelCount: { ideal: 1 }, // Mono
+                    sampleRate: { ideal: 48000 }, // High sample rate
+                    latency: { ideal: 0 }, // Low latency
                 }
-            });
+            };
+
+            console.log('Audio constraints:', constraints);
+            this.microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);
             this.micPermissionGranted = true;
-            console.log('Microphone access granted');
+
+            // Log what we actually got
+            const track = this.microphoneStream.getAudioTracks()[0];
+            const settings = track.getSettings();
+            console.log('Microphone access granted with settings:', settings);
+
         } catch (error) {
             console.error('Microphone access denied:', error);
             throw error;

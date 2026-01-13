@@ -119,69 +119,11 @@ const Matching = {
         return { sample: searchStartSample, rms: 0 }; // Default to expected position
     },
 
-    // Analyze recorded audio and extract pitch time series
-    analyzeRecording: function(audioBuffer, goClickTime, recordingStartTime) {
-        const sampleRate = audioBuffer.sampleRate;
-        const audioData = audioBuffer.getChannelData(0);
+    // Helper: Extract pitch time series starting from a specific sample position
+    extractTimeSeries: function(audioData, sampleRate, startSample, expectedSlices) {
         const sliceSamples = Math.round(this.sliceInterval * sampleRate);
         const windowSize = 4096;
-
-        console.log(`Sample rate: ${sampleRate} Hz`);
-        console.log(`Slice samples: ${sliceSamples} (${(sliceSamples / sampleRate * 1000).toFixed(3)}ms per slice)`);
-        console.log(`Total recording duration: ${(audioData.length / sampleRate * 1000).toFixed(1)}ms`);
-
-        // We know when we SCHEDULED the GO! click
-        const goClickScheduledTime = goClickTime - recordingStartTime; // seconds into recording
-        const goClickScheduledSample = Math.round(goClickScheduledTime * sampleRate);
-        console.log(`GO! click SCHEDULED at ${(goClickScheduledTime * 1000).toFixed(1)}ms into recording`);
-
-        // Detect where GO! click ACTUALLY appears in the recording
-        const goClickResult = this.findGoClickInRecording(audioData, sampleRate);
-        const goClickDetectedSample = goClickResult.sample;
-        const goClickRms = goClickResult.rms;
-        const goClickDetectedTime = goClickDetectedSample / sampleRate;
-        console.log(`GO! click DETECTED at ${(goClickDetectedTime * 1000).toFixed(1)}ms into recording`);
-
-        // The difference is the round-trip latency (output + input)
-        const latencyMs = (goClickDetectedTime - goClickScheduledTime) * 1000;
-        console.log(`Round-trip latency: ${latencyMs.toFixed(1)}ms`);
-
-        // User plays one beat after the detected GO! click
-        const beatSamples = Math.round(this.beatDuration * sampleRate);
-        const startSample = goClickDetectedSample + beatSamples;
-
-        console.log(`Starting analysis at sample ${startSample} (detected GO! + one beat = ${(startSample / sampleRate * 1000).toFixed(1)}ms)`);
-
-        // Extract pitch at each time slice
-        const recordedTimeSeries = [];
-
-        // We'll analyze for the same number of slices as the reference
-        // This will be set by the caller based on the pattern
-        const expectedSlices = Math.round((4 * this.beatDuration) / this.sliceInterval); // 4 beats total
-
-        console.log(`Analyzing ${expectedSlices} slices`);
-        console.log(`Recording has ${Math.floor(audioData.length / sliceSamples)} potential slices`);
-
-        // Debug: Send timing data
-        if (typeof Debug !== 'undefined') {
-            // Add separator between questions (but not before first question)
-            if (typeof Game !== 'undefined' && Game.currentQuestionNum > 1) {
-                Debug.separator();
-            }
-            Debug.section(`📊 QUESTION ${typeof Game !== 'undefined' ? Game.currentQuestionNum : '?'}`);
-            Debug.setTimingData({
-                recordingStartTime: recordingStartTime,
-                goClickScheduledTime: goClickScheduledTime,
-                goClickDetectedTime: goClickDetectedTime,
-                latencyMs: latencyMs,
-                userPlayStartTime: startSample / sampleRate,
-                userPlayEndTime: (startSample + expectedSlices * sliceSamples) / sampleRate,
-                goClickRms: goClickRms,
-                tempo: this.tempo,
-                beatDuration: this.beatDuration,
-                sliceInterval: this.sliceInterval
-            });
-        }
+        const timeSeries = [];
 
         for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
             const slicePosition = startSample + (sliceIndex * sliceSamples);
@@ -189,15 +131,110 @@ const Matching = {
             // Analyze FORWARD from this slice position
             const windowStart = slicePosition;
             const windowEnd = Math.min(slicePosition + windowSize, audioData.length);
+
+            // Safety check
+            if (windowStart >= audioData.length) {
+                timeSeries.push(null);
+                continue;
+            }
+
             const slice = audioData.slice(windowStart, windowEnd);
 
             // Detect pitch for this slice (using Recording's autoCorrelate)
             const frequency = Recording.autoCorrelate(slice, sampleRate);
-            recordedTimeSeries.push(frequency > 0 ? frequency : null);
+            timeSeries.push(frequency > 0 ? frequency : null);
         }
 
-        console.log('Recorded time series:', recordedTimeSeries.map(f => f ? f.toFixed(1) : 'silence'));
-        return recordedTimeSeries;
+        return timeSeries;
+    },
+
+    // Analyze recorded audio using multi-offset alignment search
+    analyzeRecording: function(audioBuffer, goClickTime, recordingStartTime) {
+        const sampleRate = audioBuffer.sampleRate;
+        const audioData = audioBuffer.getChannelData(0);
+        const sliceSamples = Math.round(this.sliceInterval * sampleRate);
+
+        console.log(`Sample rate: ${sampleRate} Hz`);
+        console.log(`Slice samples: ${sliceSamples} (${(sliceSamples / sampleRate * 1000).toFixed(3)}ms per slice)`);
+        console.log(`Total recording duration: ${(audioData.length / sampleRate * 1000).toFixed(1)}ms`);
+
+        // We know when we SCHEDULED the GO! click
+        const goClickScheduledTime = goClickTime - recordingStartTime;
+        console.log(`GO! click SCHEDULED at ${(goClickScheduledTime * 1000).toFixed(1)}ms into recording`);
+
+        // User should start playing one beat after the GO! click
+        // We'll use the scheduled time as our baseline (no need for precise detection)
+        const beatSamples = Math.round(this.beatDuration * sampleRate);
+        const baselineStartSample = Math.round(goClickScheduledTime * sampleRate) + beatSamples;
+
+        console.log(`Baseline analysis start: ${(baselineStartSample / sampleRate * 1000).toFixed(1)}ms`);
+
+        // We'll analyze for the same number of slices as the reference (4 beats)
+        const expectedSlices = Math.round((4 * this.beatDuration) / this.sliceInterval);
+
+        // Try 5 different alignments: 0, 1, 2, 3, 4 sixteenth notes offset
+        // A sixteenth note = beatDuration / 4
+        const sixteenthNoteSamples = Math.round((this.beatDuration / 4) * sampleRate);
+        const attempts = [];
+
+        console.log('\n=== TRYING MULTIPLE ALIGNMENTS ===');
+        console.log(`Sixteenth note = ${(sixteenthNoteSamples / sampleRate * 1000).toFixed(1)}ms`);
+
+        for (let offset = 0; offset < 5; offset++) {
+            const startSample = baselineStartSample + (offset * sixteenthNoteSamples);
+            const timeSeries = this.extractTimeSeries(audioData, sampleRate, startSample, expectedSlices);
+
+            // Calculate error for this alignment (compare against stored reference)
+            // Note: reference is stored by game.js before calling analyzeRecording
+            const error = this.calculateErrorForAlignment(this.currentReference || [], timeSeries);
+
+            const offsetMs = (offset * sixteenthNoteSamples / sampleRate * 1000);
+            console.log(`Offset ${offset} (${offsetMs.toFixed(0)}ms): error = ${error.toFixed(2)}`);
+
+            attempts.push({
+                offset: offset,
+                offsetMs: offsetMs,
+                startSample: startSample,
+                timeSeries: timeSeries,
+                error: error
+            });
+        }
+
+        // Find the best alignment (lowest error)
+        attempts.sort((a, b) => a.error - b.error);
+        const bestAttempt = attempts[0];
+
+        console.log(`\nBEST ALIGNMENT: Offset ${bestAttempt.offset} (${bestAttempt.offsetMs.toFixed(0)}ms) with error ${bestAttempt.error.toFixed(2)}`);
+
+        // Debug: Send alignment search data
+        if (typeof Debug !== 'undefined') {
+            // Add separator between questions (but not before first question)
+            if (typeof Game !== 'undefined' && Game.currentQuestionNum > 1) {
+                Debug.separator();
+            }
+            Debug.section(`📊 QUESTION ${typeof Game !== 'undefined' ? Game.currentQuestionNum : '?'}`);
+
+            // Log alignment attempts
+            Debug.section('🎯 ALIGNMENT SEARCH');
+            attempts.forEach((attempt, i) => {
+                const marker = i === 0 ? ' ← BEST' : '';
+                Debug.log(`Offset ${attempt.offset} (+${attempt.offsetMs.toFixed(0)}ms): error = ${attempt.error.toFixed(2)}${marker}`);
+            });
+
+            Debug.setTimingData({
+                recordingStartTime: recordingStartTime,
+                goClickScheduledTime: goClickScheduledTime,
+                bestOffset: bestAttempt.offset,
+                bestOffsetMs: bestAttempt.offsetMs,
+                userPlayStartTime: bestAttempt.startSample / sampleRate,
+                userPlayEndTime: (bestAttempt.startSample + expectedSlices * sliceSamples) / sampleRate,
+                tempo: this.tempo,
+                beatDuration: this.beatDuration,
+                sliceInterval: this.sliceInterval
+            });
+        }
+
+        return bestAttempt.timeSeries;
     },
 
     // Normalize frequency to a base octave (between 200-400 Hz range)
@@ -211,7 +248,32 @@ const Matching = {
         return freq;
     },
 
-    // Calculate error between reference and recorded
+    // Calculate error for alignment search (no debug output)
+    calculateErrorForAlignment: function(reference, recorded) {
+        const minLength = Math.min(reference.length, recorded.length);
+        let totalError = 0;
+
+        for (let i = 0; i < minLength; i++) {
+            const refFreq = reference[i];
+            const recFreq = recorded[i];
+
+            if (refFreq === null && recFreq === null) {
+                continue;
+            } else if (refFreq === null || recFreq === null) {
+                totalError += 10;
+            } else {
+                const octaveShift = Math.round(Math.log2(refFreq / recFreq));
+                const recFreqShifted = recFreq * Math.pow(2, octaveShift);
+                const cents = Math.abs(1200 * Math.log2(recFreqShifted / refFreq));
+                const error = Math.min(cents / 12, 10);
+                totalError += error;
+            }
+        }
+
+        return minLength > 0 ? totalError / minLength : 100;
+    },
+
+    // Calculate error between reference and recorded (with debug output)
     calculateError: function(reference, recorded, pattern) {
         // Make sure they're the same length
         const minLength = Math.min(reference.length, recorded.length);

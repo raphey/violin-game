@@ -130,15 +130,9 @@ const Debug = {
         this.section('⏱️ TIMING INFORMATION');
         this.log(`Recording start: ${t.recordingStartTime.toFixed(3)}s (AudioContext time)`);
         this.log(`GO! SCHEDULED at: ${t.goClickScheduledTime.toFixed(3)}s into recording`);
-        this.log(`GO! DETECTED at: ${t.goClickDetectedTime.toFixed(3)}s into recording`);
-        this.log(`<span class="debug-highlight">Round-trip latency: ${t.latencyMs.toFixed(1)}ms</span>`);
+        this.log(`<span class="debug-highlight">Best alignment: Offset ${t.bestOffset} (+${t.bestOffsetMs.toFixed(0)}ms)</span>`);
         this.log(`User playing starts at: ${t.userPlayStartTime.toFixed(3)}s into recording`);
         this.log(`Analysis window: ${t.userPlayStartTime.toFixed(3)}s - ${t.userPlayEndTime.toFixed(3)}s`);
-
-        if (t.goClickRms) {
-            this.log(`GO! click RMS: ${t.goClickRms.toFixed(4)}`);
-        }
-
         this.log(`Tempo: ${t.tempo} BPM (beat = ${t.beatDuration.toFixed(3)}s)`);
         this.log(`Slice interval: ${t.sliceInterval.toFixed(3)}s (8th notes)`);
     },

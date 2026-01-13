@@ -88,15 +88,19 @@ const Game = {
             UI.showStatus('Play!');
             UI.showRecordingIndicator(true);
 
-            // Wait for pattern duration
+            // Wait for pattern duration + 1 extra beat (to allow for timing alignment search)
             const patternDuration = this.currentPattern.durations.reduce((sum, d) => sum + d, 0) * Audio.beatDuration;
-            await new Promise(resolve => setTimeout(resolve, patternDuration * 1000));
+            const recordingDuration = patternDuration + Audio.beatDuration; // Extra beat for alignment
+            await new Promise(resolve => setTimeout(resolve, recordingDuration * 1000));
 
             // Step 5: Stop recording and get audio buffer
             UI.showRecordingIndicator(false);
             const recordingInfo = await Recording.stopRecording();
 
             // Step 6: Analyze recording
+            // Store reference for alignment search
+            Matching.currentReference = this.referenceTimeSeries;
+
             const recordedTimeSeries = Matching.analyzeRecording(
                 recordingInfo.audioBuffer,
                 recordingInfo.goClickTime,

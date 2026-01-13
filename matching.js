@@ -120,10 +120,11 @@ const Matching = {
     },
 
     // Helper: Extract pitch time series starting from a specific sample position
-    extractTimeSeries: function(audioData, sampleRate, startSample, expectedSlices) {
+    extractTimeSeries: function(audioData, sampleRate, startSample, expectedSlices, includeDebugInfo = false) {
         const sliceSamples = Math.round(this.sliceInterval * sampleRate);
         const windowSize = 4096;
         const timeSeries = [];
+        const debugInfo = includeDebugInfo ? [] : null;
 
         for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
             const slicePosition = startSample + (sliceIndex * sliceSamples);
@@ -135,17 +136,26 @@ const Matching = {
             // Safety check
             if (windowStart >= audioData.length) {
                 timeSeries.push(null);
+                if (debugInfo) debugInfo.push({ rms: 0, correlation: 0, reason: 'out_of_bounds' });
                 continue;
             }
 
             const slice = audioData.slice(windowStart, windowEnd);
 
             // Detect pitch for this slice (using Recording's autoCorrelate)
-            const frequency = Recording.autoCorrelate(slice, sampleRate);
-            timeSeries.push(frequency > 0 ? frequency : null);
+            const result = Recording.autoCorrelate(slice, sampleRate);
+            timeSeries.push(result.frequency > 0 ? result.frequency : null);
+
+            if (debugInfo) {
+                debugInfo.push({
+                    rms: result.rms,
+                    correlation: result.correlation,
+                    reason: result.reason
+                });
+            }
         }
 
-        return timeSeries;
+        return includeDebugInfo ? { timeSeries, debugInfo } : timeSeries;
     },
 
     // Analyze recorded audio using multi-offset alignment search
@@ -206,6 +216,13 @@ const Matching = {
 
         console.log(`\nBEST ALIGNMENT: Offset ${bestAttempt.offset} (${bestAttempt.offsetMs.toFixed(0)}ms) with error ${bestAttempt.error.toFixed(2)}`);
 
+        // Extract detailed debug info for the best attempt
+        let bestAttemptDebugInfo = null;
+        if (typeof Debug !== 'undefined') {
+            const detailedResult = this.extractTimeSeries(audioData, sampleRate, bestAttempt.startSample, expectedSlices, true);
+            bestAttemptDebugInfo = detailedResult.debugInfo;
+        }
+
         // Debug: Send alignment search data
         if (typeof Debug !== 'undefined') {
             // Add separator between questions (but not before first question)
@@ -230,7 +247,8 @@ const Matching = {
                 userPlayEndTime: (bestAttempt.startSample + expectedSlices * sliceSamples) / sampleRate,
                 tempo: this.tempo,
                 beatDuration: this.beatDuration,
-                sliceInterval: this.sliceInterval
+                sliceInterval: this.sliceInterval,
+                debugInfo: bestAttemptDebugInfo
             });
         }
 
@@ -282,6 +300,11 @@ const Matching = {
         // Debug: Prepare slice-by-slice data
         const sliceData = [];
 
+        // Get debug info from timing data if available
+        const debugInfo = (typeof Debug !== 'undefined' && Debug.currentData.timing)
+            ? Debug.currentData.timing.debugInfo
+            : null;
+
         for (let i = 0; i < minLength; i++) {
             const refFreq = reference[i];
             const recFreq = recorded[i];
@@ -309,14 +332,23 @@ const Matching = {
                 totalError += sliceError;
             }
 
-            // Debug: Store slice data
-            sliceData.push({
+            // Debug: Store slice data with RMS and correlation info
+            const sliceInfo = {
                 startTime: i * this.sliceInterval,
                 expected: refFreq,
                 expectedNote: refFreq ? this.frequencyToNote(refFreq) : null,
                 detected: recFreq,
                 error: sliceError
-            });
+            };
+
+            // Add RMS and correlation data if available
+            if (debugInfo && debugInfo[i]) {
+                sliceInfo.rms = debugInfo[i].rms;
+                sliceInfo.correlation = debugInfo[i].correlation;
+                sliceInfo.reason = debugInfo[i].reason;
+            }
+
+            sliceData.push(sliceInfo);
         }
 
         // Average error per slice

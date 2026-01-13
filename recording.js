@@ -79,7 +79,7 @@ const Recording = {
     },
 
     // Autocorrelation pitch detection algorithm
-    // Returns frequency in Hz, or -1 if no pitch detected
+    // Returns object with frequency, rms, and correlation info
     autoCorrelate: function(buffer, sampleRate) {
         // Minimum and maximum frequencies we care about (violin range)
         const minFreq = 80;  // ~E2
@@ -95,8 +95,10 @@ const Recording = {
         }
         rms = Math.sqrt(rms / buffer.length);
 
-        // If signal is too weak, return -1
-        if (rms < 0.01) return -1;
+        // Lower threshold for iPad compatibility (was 0.01, now 0.005)
+        if (rms < 0.005) {
+            return { frequency: -1, rms: rms, correlation: 0, reason: 'rms_too_low' };
+        }
 
         // Autocorrelation
         let bestCorrelation = 0;
@@ -115,8 +117,11 @@ const Recording = {
             }
         }
 
-        if (bestOffset === -1) return -1;
+        if (bestOffset === -1) {
+            return { frequency: -1, rms: rms, correlation: bestCorrelation, reason: 'no_correlation' };
+        }
 
-        return sampleRate / bestOffset;
+        const frequency = sampleRate / bestOffset;
+        return { frequency: frequency, rms: rms, correlation: bestCorrelation, reason: 'success' };
     }
 };

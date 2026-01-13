@@ -617,6 +617,19 @@ body {
     font-weight: bold;
 }
 
+.debug-table .rms-good {
+    color: #10b981;
+}
+
+.debug-table .rms-low {
+    color: #fbbf24;
+}
+
+.debug-table .rms-too-low {
+    color: #ef4444;
+    font-weight: bold;
+}
+
 /* Mobile adjustments for debug panel */
 @media (max-width: 600px) {
     .debug-panel {

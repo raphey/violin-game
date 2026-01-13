@@ -146,13 +146,34 @@ const Debug = {
         this.log(`Total slices analyzed: ${p.slices.length}`);
 
         // Create a detailed table view
-        let tableHtml = '<table class="debug-table"><thead><tr><th>Slice</th><th>Time</th><th>Expected</th><th>Detected</th><th>Error</th></tr></thead><tbody>';
+        let tableHtml = '<table class="debug-table"><thead><tr><th>Slice</th><th>Time</th><th>Expected</th><th>Detected</th><th>RMS</th><th>Error</th></tr></thead><tbody>';
 
         p.slices.forEach((slice, i) => {
             const timeMs = (slice.startTime * 1000).toFixed(0);
             const expected = slice.expected ? `${slice.expectedNote} (${slice.expected.toFixed(1)} Hz)` : 'silence';
             const detected = slice.detected ? `${slice.detected.toFixed(1)} Hz` : 'silence';
             const error = slice.error !== undefined ? slice.error.toFixed(2) : 'N/A';
+
+            // Show RMS with color coding
+            let rmsDisplay = 'N/A';
+            let rmsClass = '';
+            if (slice.rms !== undefined) {
+                rmsDisplay = slice.rms.toFixed(4);
+                if (slice.rms < 0.005) {
+                    rmsClass = 'rms-too-low'; // Red - below threshold
+                } else if (slice.rms < 0.01) {
+                    rmsClass = 'rms-low'; // Yellow - marginal
+                } else {
+                    rmsClass = 'rms-good'; // Green - good signal
+                }
+
+                // Add reason indicator
+                if (slice.reason === 'rms_too_low') {
+                    rmsDisplay += ' ⚠️';
+                } else if (slice.reason === 'no_correlation') {
+                    rmsDisplay += ' ❌';
+                }
+            }
 
             const errorClass = slice.error > 2 ? 'error-high' : (slice.error > 1 ? 'error-medium' : 'error-low');
 
@@ -161,6 +182,7 @@ const Debug = {
                 <td>${timeMs}ms</td>
                 <td>${expected}</td>
                 <td>${detected}</td>
+                <td class="${rmsClass}">${rmsDisplay}</td>
                 <td class="${errorClass}">${error}</td>
             </tr>`;
         });

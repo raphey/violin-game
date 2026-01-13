@@ -66,9 +66,10 @@ const Matching = {
     findGoClickInRecording: function(audioData, sampleRate) {
         // GO! should be at: pattern duration (4 beats) + 3 countdown beats = 7 beats total
         const expectedGoTimeSeconds = 7 * this.beatDuration;
-        // Search window: ±300ms around expected time
-        const searchStartMs = (expectedGoTimeSeconds - 0.3) * 1000;
-        const searchEndMs = (expectedGoTimeSeconds + 0.3) * 1000;
+        // Search window: -100ms to +400ms (mostly forward to avoid detecting the "3" click)
+        // Recording starts early on purpose, so latency should be positive, not negative
+        const searchStartMs = (expectedGoTimeSeconds - 0.1) * 1000;
+        const searchEndMs = (expectedGoTimeSeconds + 0.4) * 1000;
         const searchStartSample = Math.floor((searchStartMs / 1000) * sampleRate);
         const searchEndSample = Math.floor((searchEndMs / 1000) * sampleRate);
 

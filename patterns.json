@@ -165,10 +165,208 @@
     ]
   },
   "twinkle": {
-    "level1": [],
-    "level2": [],
-    "level3": [],
-    "level4": []
+    "level1": [
+      {
+        "notes": ["A4", "B4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["A4", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["A4", "D5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["A4", "E5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["A4", "F#5"],
+        "durations": [2, 2]
+      }
+    ],
+    "level2": [
+      {
+        "notes": ["A4", "A4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["B4", "B4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["C#5", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["D5", "D5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "E5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["F#5", "F#5"],
+        "durations": [2, 2]
+      }
+    ],
+    "level3": [
+      {
+        "notes": ["A4", "E5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "F#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["F#5", "E5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "D5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["D5", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["C#5", "B4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["B4", "A4"],
+        "durations": [2, 2]
+      }
+    ],
+    "level4": [
+      {
+        "notes": ["A4", "A4", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["A4", "A4", "E5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["A4", "A4", "E5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["E5", "F#5", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["E5", "F#5", "E5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["E5", "F#5", "E5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "B4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["D5", "C#5", "B4"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "B4"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["F#5", "E5", "D5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["F#5", "E5", "D5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["F#5", "E5", "D5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "A4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["C#5", "B4", "A4"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "A4"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["E5", "D5", "C#5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["E5", "D5", "C#5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["E5", "D5", "C#5"],
+        "durations": [2, 1, 1]
+      }
+    ],
+    "level5": [
+      {
+        "notes": ["A4", "A4", "E5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "E5", "F#5", "F#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["F#5", "F#5", "E5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "D5", "C#5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "C#5", "B4", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "B4", "A4", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "E5", "F#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "F#5", "E5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "B4", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "E5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["F#5", "E5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "D5", "C#5", "B4"],
+        "durations": [1, 1, 1, 1]
+      }
+    ]
   },
   "lightly-row": {
     "level1": [],

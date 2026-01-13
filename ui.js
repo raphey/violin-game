@@ -37,22 +37,8 @@ const UI = {
             });
         });
 
-        // Level buttons
-        const levelButtons = document.querySelectorAll('.menu-btn[data-level]');
-        levelButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (btn.classList.contains('disabled')) return;
-
-                const level = parseInt(btn.getAttribute('data-level'));
-                this.selectedLevel = level;
-
-                if (typeof Sounds !== 'undefined') {
-                    Sounds.playClick();
-                }
-
-                this.startGame();
-            });
-        });
+        // Level buttons are now dynamically created in showLevelScreen()
+        // Event listeners are attached when buttons are created
 
         // Play again button
         const playAgainBtn = document.getElementById('play-again-btn');
@@ -293,26 +279,44 @@ const UI = {
         levelScreen.classList.remove('hidden');
         progressContainer.classList.add('hidden');
 
-        // Enable/disable level buttons based on available patterns
+        // Dynamically create level buttons based on available patterns
+        const levelButtonsContainer = document.getElementById('level-buttons-container');
+        levelButtonsContainer.innerHTML = ''; // Clear existing buttons
+
         if (typeof Patterns !== 'undefined' && Patterns.allPatterns) {
             const categoryPatterns = Patterns.allPatterns[this.selectedCategory];
-            const levelButtons = document.querySelectorAll('.menu-btn[data-level]');
 
-            levelButtons.forEach(btn => {
-                const level = parseInt(btn.getAttribute('data-level'));
-                const levelKey = `level${level}`;
-                const hasPatterns = categoryPatterns &&
-                                  categoryPatterns[levelKey] &&
-                                  categoryPatterns[levelKey].length > 0;
-
-                if (hasPatterns) {
-                    btn.classList.remove('disabled');
-                    btn.disabled = false;
-                } else {
-                    btn.classList.add('disabled');
-                    btn.disabled = true;
+            if (categoryPatterns) {
+                // Find all levels that have patterns
+                const availableLevels = [];
+                for (let i = 1; i <= 10; i++) { // Check up to level 10
+                    const levelKey = `level${i}`;
+                    if (categoryPatterns[levelKey] && categoryPatterns[levelKey].length > 0) {
+                        availableLevels.push(i);
+                    }
                 }
-            });
+
+                // Create a button for each available level
+                availableLevels.forEach(level => {
+                    const btn = document.createElement('button');
+                    btn.className = 'menu-btn';
+                    btn.setAttribute('data-level', level);
+                    btn.textContent = `Level ${level}`;
+
+                    // Attach event listener
+                    btn.addEventListener('click', () => {
+                        this.selectedLevel = level;
+
+                        if (typeof Sounds !== 'undefined') {
+                            Sounds.playClick();
+                        }
+
+                        this.startGame();
+                    });
+
+                    levelButtonsContainer.appendChild(btn);
+                });
+            }
         }
     },
 

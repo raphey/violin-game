@@ -1,152 +1,204 @@
-# Violin Ear Training Game - Project Plan
+# Violin Ear Training Game - Project Status
 
-## Game Concept
+## Current State: ✅ COMPLETE AND DEPLOYED
 
-An ear training game where the computer plays a short musical pattern and the user plays it back on their violin. Similar to Simon Says, but with violin and precise pitch/timing checking.
+Live at: https://raphey.github.io/violin-game/
 
-### Core Gameplay Flow
+## Game Overview
 
-1. Computer plays reference pattern (8 beats at ~100 BPM)
-2. Silent countdown with quiet metronome clicks (4 beats)
-3. Visual + audio countdown: "1 - 2 - ready - go" with louder clicks (4 beats)
-4. User plays pattern while game records (8 beats)
-5. Game checks recorded audio against expected pattern
-6. Show result (correct/incorrect)
-7. Repeat for 10 problems total
-8. Celebration screen at end (like math game)
+An ear training game where the computer plays a short musical pattern and the user plays it back on their violin. The game uses pitch detection to compare recorded audio against expected patterns.
 
-## Technical Requirements
+## Game Structure
 
-### Audio Input
-- Microphone access for recording violin
-- Real-time or near-real-time pitch detection
-- Input: Physical violin played by user
+### Categories
+1. **Open Strings** - G3, D4, A4, E5 (violin open strings)
+   - Level 1 only: Single whole notes (4 beats)
+2. **See-Saw** - A4, B4, E5 (from Suzuki Book 1)
+   - Level 1: Two half notes (same note)
+   - Level 2: Two half notes (can differ)
+   - Level 3: Three notes with mixed rhythms (♩♩𝅗𝅥, ♩𝅗𝅥♩, 𝅗𝅥♩♩)
+   - Level 4: Four quarter notes
+3. **Twinkle, Lightly Row, Song of the Wind** - Coming Soon (disabled)
 
-### Audio Output
-- High-quality violin synthesis for playback
-- Metronome clicks
-- Countdown audio cues
+### Game Flow
+1. User selects category and level
+2. Click "Start" button to begin
+3. For each problem (configurable 5-15 questions, default 10):
+   - Computer plays reference pattern (4 beats)
+   - Visual/audio countdown: "1 - 2 - Ready - GO!" with clicks (4 beats)
+   - User plays while recording (4 beats)
+   - Game analyzes match and shows result (✓ green or ✗ orange)
+   - Auto-advance to next question
+4. Celebration screen with fireworks and victory sound
 
-### Pitch Detection & Matching
-- Convert audio to time series of (time_slice → frequency or null)
-- Compare recorded audio against reference pattern slice by slice
-- Accumulate error across mismatches:
-  - Wrong pitch
-  - Slightly off pitch
-  - Note vs silence mismatch
-  - Timing errors (naturally captured by slice comparison)
-- Single tolerance parameter determines pass/fail
+### Settings (Configurable)
+- **Tempo**: 60-120 BPM (default 90), step 5
+- **Tolerance**: 2-8 error threshold (default 6), step 0.5
+- **Level Length**: 5-15 questions (default 10), step 1
 
-### Pattern Authoring
-- YAML-based pattern definition
-- Text-based notation format (TBD - needs to represent pitch, duration, rests)
-- Example structure (notation syntax not final):
-  ```yaml
-  level_name:
-    - "pattern string 1"
-    - "pattern string 2"
-  ```
-- Patterns are 8 beats, can contain subdivisions and rests
-- Not user-facing - author-only tool
+Settings persist in localStorage across sessions.
 
-### Difficulty Progression
-- Longer sequences (more note subdivisions within 8 beats)
-- Wider intervals
-- Greater selection of notes (start with just A4 and E5)
-- Possibly: rhythmic complexity, tempo changes (TBD)
+## Technical Implementation
 
-## Open Questions
+### Audio System (`audio.js`)
+- Loads violin samples from `/samples/` directory
+- Plays patterns using Web Audio API with precise timing
+- Supports pitch shifting (e.g., B4 from A4 sample)
+- Metronome clicks for countdown
+- Tempo: Configurable, affects beatDuration = 60/BPM
 
-### Tolerance Parameters
-- Should octave errors count as correct? (May emerge from tolerance tuning)
-- What time slice granularity? (10ms? 50ms?)
-- How to tune tolerance value for good UX?
+### Recording (`recording.js`)
+- Captures microphone input via MediaRecorder
+- Records entire sequence (pattern + countdown + user playing)
+- Returns audio buffer for analysis
 
-### Technical Feasibility
-- Can browser-based pitch detection handle violin reliably?
-- Can we find/create acceptable violin synthesis?
-- Decision point: Web vs native app
+### Pitch Detection & Matching (`matching.js`)
+- **Time Slicing**: Divides pattern into 8th-note slices (beatDuration/2)
+- **Pitch Detection**: Autocorrelation algorithm on each slice
+- **Octave Normalization**: Mathematically finds optimal octave shift to minimize error
+  - Formula: `octaveShift = round(log₂(refFreq / recFreq))`
+  - Eliminates boundary discontinuities from naive normalization
+- **Error Calculation**: Per-slice comparison
+  - Both silence: 0 error
+  - One silence, one sound: +10 error
+  - Both have pitch: Calculate cents difference, convert to error (cents/12)
+  - Final error: Average across all slices
+- **GO! Click Detection**: Dynamically scales search window with tempo
+  - Expected time: 7 beats (4-beat pattern + 3 countdown beats)
+  - Search window: ±300ms around expected time
 
-## Project Phases
+### Pattern System (`patterns.js`, `patterns.json`)
+- Patterns stored in JSON format (YAML removed as redundant)
+- Each pattern: `{notes: [...], durations: [...]}`
+- Notes: String notation (e.g., "A4", "B4", "E5")
+- Durations: In beats (1 = quarter note, 2 = half note, 4 = whole note)
+- Random selection with replacement for each question
 
-### Phase 1a: Pitch Detection Test ✓ COMPLETE
-- Get microphone access in browser
-- Implement pitch detection library
-- Test with real violin input
-- Verify: Can we reliably detect A4, E5, etc?
-- **Go/No-Go decision point**
+### Game Controller (`game.js`)
+- Orchestrates full game loop
+- Manages state (score, current question)
+- Applies settings (tempo, tolerance, level length)
+- Percentage-based celebration levels:
+  - Perfect: 100%
+  - Great: 90-99%
+  - Good: 80-89%
+  - Okay: 70-79%
+  - Keep Trying: <70%
 
-**Status: COMPLETE - GO**
-- **Approach:** Autocorrelation algorithm with Web Audio API
-- **Stability:** FFT size 4096 + mode-based smoothing (15-note buffer)
-- **Accuracy:** Successfully distinguishes between notes, including higher E string
-- **Latency:** Responsive enough for gameplay (~180ms with smoothing)
-- **Rest Detection:** Properly detects silence vs. playing
-- **Browser-based:** Works well, no need for native app
-- **Tool:** `pitch-test.html` - can test with violin anytime
+### UI System (`ui.js`)
+- Screen navigation (category → level → game → celebration)
+- Settings screen with sliders
+- Real-time visual feedback (green/orange)
+- Progress bar updates
+- Dynamically enables/disables level buttons based on pattern availability
 
-### Phase 1b: Violin Synthesis Test ✓ COMPLETE
-- Find violin samples or synthesizer
-- Test playback of simple patterns
-- Verify: Does it sound acceptable/realistic?
-- **Go/No-Go decision point**
+### Settings System (`settings.js`)
+- Manages global settings with localStorage persistence
+- Validates ranges
+- Applies to Audio and Game systems
 
-**Status: COMPLETE - GO**
-- **Approach:** WAV samples extracted from SF2 soundfont using FluidSynth
-- **Soundfont Used:** Valiant_Violin_V2.sf2
-- **Samples:** 8 notes (A3, B3, C4, D4, E4, A4, E5, A5), 4 seconds each, ~6.4MB total
-- **Playback:** Web Audio API in browser - works perfectly
-- **Sound Quality:** Good, acceptable for the game
-- **Hosting:** Simple - static files, no backend needed
-- **Tool:** `extract_samples.py` - can regenerate or add more notes easily
+### Audio Samples (`samples/`)
+- WAV files extracted from SF2 soundfont using FluidSynth
+- Current samples: G3, A3, B3, D4, E4, A4, E5, A5
+- Extract script: `extract_samples.py`
 
-### Phase 2: Core Matching Algorithm
-- Implement time-sliced pitch detection
-- Build error accumulation logic
-- Test: Play reference, record playback, calculate error
-- Tune tolerance parameter
+### Celebrations (`celebrations.js`)
+- Canvas-based fireworks animation
+- Intensity scales with celebration level
+- Victory sound: A major 7 arpeggio
 
-### Phase 3: Basic Game Loop (Single Problem)
-- Play reference pattern (8 beats)
-- 4-beat silent countdown with quiet clicks
-- 4-beat visual/audio "1-2-ready-go" countdown
-- Record 8 beats
-- Check and display result
+### Sounds (`sounds.js`)
+- Coin ding for correct answers (B5 → E6)
+- Victory arpeggio (A major 7)
+- No sound for wrong answers
 
-### Phase 4: Full Game Structure
-- 10 problems in sequence
-- Scoring system
-- Celebration screen
-- Random pattern generation for testing
+## Key Design Decisions
 
-### Phase 5: Authoring System
-- Finalize YAML format
-- Load patterns from file
-- Select which level/set to play
+### Tempo Management
+- Single source of truth in `audio.js`
+- All timing derived from `beatDuration = 60/tempo`
+- `matching.js` references `Audio.tempo` via getters
+- GO! click detection dynamically scales with tempo
 
-### Phase 6: Polish & Tuning
-- Adjust tolerance based on real use
-- Better UI/feedback
-- Difficulty parameters
-- Sound design polish
+### Error Tolerance
+- Default: 6.0 (tuned for realistic performance)
+- Configurable 2-8 with half-step precision
+- Lower = harder (less forgiving of pitch/timing errors)
 
-## Technology Stack (Tentative)
+### Octave Handling
+- Optimal octave shift algorithm prevents boundary discontinuities
+- Example: Playing 401 Hz (slightly sharp) gives ~40 cents error, not ~1161
+- A3, A4, A5 all treated as equivalent after shifting
 
-### If Web-Based
-- HTML/CSS/JS (like math-game)
-- Web Audio API for audio I/O
-- Pitch detection: Pitchy, Aubio.js, or similar
-- Violin synthesis: Soundfont samples or Web Audio synthesis
+### Pattern Complexity Progression
+- Open Strings Level 1: Single whole notes (easiest)
+- See-Saw Level 1: Repeated notes (introduce rhythm)
+- See-Saw Level 2: Different notes (introduce intervals)
+- See-Saw Level 3: Three notes with rhythm variations
+- See-Saw Level 4: Four quarter notes (most complex)
 
-### If Native App Needed
-- Electron (web tech + better audio)
-- Or Python + GUI framework
-- Better audio libraries available
+### UI/UX
+- Start button prevents accidental auto-start
+- Settings easily accessible from main menu
+- Compact layout fits without scrolling
+- Dark settings panel for readability
+- Auto-advance after feedback (800ms correct, 1000ms wrong)
 
-## Success Criteria
+## Browser Compatibility
 
-- Pitch detection accurate enough to distinguish adjacent notes
-- Timing detection catches obviously late/early notes
-- Violin synthesis sounds musical enough to practice with
-- Game flow is intuitive and responsive
-- Can create custom pattern sets for specific songs/exercises
+- Requires: Web Audio API, MediaRecorder API, modern JavaScript (ES6+)
+- Tested on: Chrome, Firefox, Safari
+- Microphone permission required
+
+## Development Tools
+
+- **Local server**: `python3 -m http.server 8000`
+- **Sample extraction**: `python3 extract_samples.py <soundfont.sf2>`
+- **Git workflow**: Develop on `main`, auto-sync to `gh-pages`
+- **Deployment**: GitHub Pages (automatic from `gh-pages` branch)
+
+## Files
+
+### Core Game
+- `index.html` - HTML structure (category, level, game, celebration screens)
+- `styles.css` - Purple/green gradient theme
+- `game.js` - Game controller
+- `ui.js` - UI controller
+- `audio.js` - Audio playback
+- `recording.js` - Microphone recording
+- `matching.js` - Pitch detection and error calculation
+- `patterns.js` - Pattern loading
+- `sounds.js` - Sound effects
+- `celebrations.js` - Fireworks animation
+- `settings.js` - Settings management
+
+### Data
+- `patterns.json` - Pattern definitions (loaded by browser)
+
+### Tools
+- `extract_samples.py` - Extract samples from SF2 soundfont
+- `samples/` - Violin WAV samples
+
+### Development/Testing (not loaded by game)
+- `matching-test.html` - Prototyping tool for matching algorithm
+- `pitch-test.html` - Pitch detection testing tool
+- `rhythm-test.html` - Rhythm playback testing tool
+- `sample-test.html` - Sample playback testing tool
+
+## Remaining TODOs
+
+- [ ] Add patterns for Twinkle, Lightly Row, Song of the Wind
+- [ ] Consider adding more note options (C#, F#, etc.)
+- [ ] Mobile optimization/testing
+- [ ] Accessibility improvements (keyboard navigation, screen readers)
+
+## Success Metrics
+
+✅ Pitch detection distinguishes adjacent notes reliably
+✅ Timing detection catches early/late notes
+✅ Violin synthesis sounds musical
+✅ Game flow is intuitive and responsive
+✅ Settings persist across sessions
+✅ Works at multiple tempos (60-120 BPM)
+✅ Octave-invariant matching (play any octave)
+✅ Deployed and accessible via web

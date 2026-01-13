@@ -156,7 +156,7 @@ const Audio = {
         }
 
         // 4 loud clicks with countdown text
-        UI.showStatus('Get ready... 1');
+        UI.showStatus('1');
         this.playClick(true);
         await new Promise(resolve => setTimeout(resolve, this.beatDuration * 1000));
 
@@ -164,11 +164,11 @@ const Audio = {
         this.playClick(true);
         await new Promise(resolve => setTimeout(resolve, this.beatDuration * 1000));
 
-        UI.showStatus('Ready');
+        UI.showStatus('3');
         this.playClick(true);
         await new Promise(resolve => setTimeout(resolve, this.beatDuration * 1000));
 
-        UI.showStatus('GO!');
+        UI.showStatus('Go');
         const goClickTime = this.audioContext.currentTime;
         this.playClick(true);
 

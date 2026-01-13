@@ -114,6 +114,13 @@ const UI = {
             lengthValue.textContent = value;
             Settings.set('levelLength', value);
         });
+
+        // Show notes checkbox
+        const showNotesCheckbox = document.getElementById('show-notes-checkbox');
+        showNotesCheckbox.addEventListener('change', (e) => {
+            const value = e.target.checked;
+            Settings.set('showNotes', value);
+        });
     },
 
     // Update settings UI to reflect current values
@@ -126,17 +133,30 @@ const UI = {
 
         document.getElementById('length-slider').value = Settings.get('levelLength');
         document.getElementById('length-value').textContent = Settings.get('levelLength');
+
+        document.getElementById('show-notes-checkbox').checked = Settings.get('showNotes');
     },
 
     // Update the pattern display
     updatePattern: function(pattern) {
         const patternDisplay = document.getElementById('pattern-notes');
-        // Display notes in a readable format
-        const notesText = pattern.notes.map((note, i) => {
-            const beats = pattern.durations[i];
-            return `${note} (${beats}♩)`;
-        }).join(' - ');
-        patternDisplay.textContent = notesText;
+
+        // Only show notes if setting is enabled
+        if (Settings.get('showNotes')) {
+            const notesText = pattern.notes.map((note, i) => {
+                const beats = pattern.durations[i];
+                return `${note} (${beats}♩)`;
+            }).join(' - ');
+            patternDisplay.textContent = notesText;
+        } else {
+            patternDisplay.textContent = '';
+        }
+    },
+
+    // Clear the pattern display
+    clearPattern: function() {
+        const patternDisplay = document.getElementById('pattern-notes');
+        patternDisplay.textContent = '';
     },
 
     // Update the progress bar

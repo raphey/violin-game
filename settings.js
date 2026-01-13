@@ -5,7 +5,8 @@ const Settings = {
     defaults: {
         tempo: 90,        // BPM (60-120)
         tolerance: 6,     // Error threshold (2-8)
-        levelLength: 10   // Questions per level (5-15)
+        levelLength: 10,  // Questions per level (5-15)
+        showNotes: false  // Show note names (true/false)
     },
 
     // Current values (loaded from localStorage or defaults)
@@ -13,10 +14,13 @@ const Settings = {
 
     // Initialize settings from localStorage or defaults
     init: function() {
+        const storedShowNotes = localStorage.getItem('violin-game-showNotes');
+
         this.current = {
             tempo: parseInt(localStorage.getItem('violin-game-tempo')) || this.defaults.tempo,
             tolerance: parseFloat(localStorage.getItem('violin-game-tolerance')) || this.defaults.tolerance,
-            levelLength: parseInt(localStorage.getItem('violin-game-levelLength')) || this.defaults.levelLength
+            levelLength: parseInt(localStorage.getItem('violin-game-levelLength')) || this.defaults.levelLength,
+            showNotes: storedShowNotes !== null ? storedShowNotes === 'true' : this.defaults.showNotes
         };
 
         // Validate ranges
@@ -60,6 +64,7 @@ const Settings = {
         localStorage.removeItem('violin-game-tempo');
         localStorage.removeItem('violin-game-tolerance');
         localStorage.removeItem('violin-game-levelLength');
+        localStorage.removeItem('violin-game-showNotes');
         this.apply();
         console.log('Settings reset to defaults');
     }

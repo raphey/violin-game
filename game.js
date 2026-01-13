@@ -23,6 +23,7 @@ const Game = {
         console.log(`Game initialized: ${category} Level ${level}`);
 
         // Show initial state
+        UI.clearPattern();
         UI.updateProgress(1, this.totalQuestions);
         UI.showStatus('Click Start to begin');
         UI.enableStartButton();
@@ -76,7 +77,7 @@ const Game = {
             await Recording.startRecording();
 
             // Step 2: Play reference pattern
-            UI.showStatus('🎻 Listen to the reference pattern...');
+            UI.showStatus('Listen...');
             await Audio.playPattern(this.currentPattern);
 
             // Step 3: Play countdown (4 quiet + 4 loud clicks)
@@ -84,7 +85,7 @@ const Game = {
             Recording.setGoClickTime(goClickTime);
 
             // Step 4: User plays (recording continues)
-            UI.showStatus('🔴 PLAY NOW!');
+            UI.showStatus('Play!');
             UI.showRecordingIndicator(true);
 
             // Wait for pattern duration
@@ -133,7 +134,7 @@ const Game = {
         this.correctCount++;
         console.log(`✓ CORRECT! (${this.correctCount}/${this.currentQuestionNum})`);
 
-        UI.showStatus('✓ Correct!');
+        UI.showStatus('Correct!');
         UI.showCorrectFeedback();
 
         // Play coin sound
@@ -151,7 +152,7 @@ const Game = {
     onWrongAnswer: function() {
         console.log(`✗ WRONG (${this.correctCount}/${this.currentQuestionNum})`);
 
-        UI.showStatus('✗ Try again!');
+        UI.showStatus('Try again!');
         UI.showWrongFeedback();
 
         // No sound for wrong answer (per requirements)

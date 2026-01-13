@@ -30,7 +30,7 @@ const Debug = {
         const debugToggle = document.createElement('button');
         debugToggle.id = 'debug-toggle';
         debugToggle.className = 'settings-btn';
-        debugToggle.textContent = '🐛 Debug';
+        debugToggle.textContent = '🐛';
         debugToggle.style.marginLeft = '10px';
         settingsBtn.parentNode.insertBefore(debugToggle, settingsBtn.nextSibling);
 

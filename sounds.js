@@ -62,32 +62,52 @@ const Sounds = {
         });
     },
 
-    // Play fireworks sounds (triumphant A major 7th arpeggio)
-    playFireworks: function() {
+    // Play category-specific victory sounds
+    playFireworks: function(category = 'default') {
         this.init();
 
-        // A major 7th arpeggio: A-C#-E-G# across octaves
-        const notes = [
-            440.00,  // A4
-            554.37,  // C#5
-            659.25,  // E5
-            830.61,  // G#5
-            880.00,  // A5
-            1108.73, // C#6
-            1318.51, // E6
-            1661.22, // G#6
-            1760.00, // A6
-            2217.46, // C#7
-            2637.02, // E7
-            3322.44, // G#7
-            // Repeat last 4 notes for emphasis
-            1760.00, // A6
-            2217.46, // C#7
-            2637.02, // E7
-            3322.44  // G#7
-        ];
+        let notes, noteDuration, noteDelay, oscillatorType;
 
-        const noteDuration = 0.15;
+        if (category === 'open-strings') {
+            // Ascending by fifths from G3 - like a rocket taking off!
+            notes = [
+                196.00,   // G3
+                293.66,   // D4
+                440.00,   // A4
+                659.25,   // E5
+                987.77,   // B5
+                1479.98,  // F#6
+                2217.46,  // C#7
+                3322.44   // G#7
+            ];
+            noteDuration = 0.15;
+            noteDelay = 0.08; // 16th note feel - fast ascent
+            oscillatorType = 'triangle';
+        } else {
+            // Default: A major 7th arpeggio
+            notes = [
+                440.00,  // A4
+                554.37,  // C#5
+                659.25,  // E5
+                830.61,  // G#5
+                880.00,  // A5
+                1108.73, // C#6
+                1318.51, // E6
+                1661.22, // G#6
+                1760.00, // A6
+                2217.46, // C#7
+                2637.02, // E7
+                3322.44, // G#7
+                // Repeat last 4 notes for emphasis
+                1760.00, // A6
+                2217.46, // C#7
+                2637.02, // E7
+                3322.44  // G#7
+            ];
+            noteDuration = 0.15;
+            noteDelay = 0.1;
+            oscillatorType = 'triangle';
+        }
 
         notes.forEach((freq, i) => {
             const oscillator = this.audioContext.createOscillator();
@@ -97,9 +117,9 @@ const Sounds = {
             gainNode.connect(this.audioContext.destination);
 
             oscillator.frequency.value = freq;
-            oscillator.type = 'triangle';
+            oscillator.type = oscillatorType;
 
-            const startTime = this.audioContext.currentTime + (i * 0.1);
+            const startTime = this.audioContext.currentTime + (i * noteDelay);
 
             gainNode.gain.setValueAtTime(0.25, startTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + noteDuration);

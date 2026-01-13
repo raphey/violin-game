@@ -142,25 +142,25 @@ const Game = {
             Sounds.playCorrect();
         }
 
-        // Auto-advance after 800ms
+        // Auto-advance after 1300ms
         setTimeout(() => {
             this.nextQuestion();
-        }, 800);
+        }, 1300);
     },
 
     // Handle wrong answer
     onWrongAnswer: function() {
         console.log(`✗ WRONG (${this.correctCount}/${this.currentQuestionNum})`);
 
-        UI.showStatus('Try again!');
+        UI.showStatus('Try another one!');
         UI.showWrongFeedback();
 
         // No sound for wrong answer (per requirements)
 
-        // Auto-advance after 1000ms
+        // Auto-advance after 1500ms
         setTimeout(() => {
             this.nextQuestion();
-        }, 1000);
+        }, 1500);
     },
 
     // End game and show celebration

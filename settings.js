@@ -4,7 +4,7 @@ const Settings = {
     // Default values
     defaults: {
         tempo: 90,        // BPM (60-120)
-        tolerance: 6,     // Error threshold (2-8)
+        tolerance: 7,     // Error threshold (2-10)
         levelLength: 10,  // Questions per level (5-15)
         showNotes: false  // Show note names (true/false)
     },
@@ -25,7 +25,7 @@ const Settings = {
 
         // Validate ranges
         this.current.tempo = Math.max(60, Math.min(120, this.current.tempo));
-        this.current.tolerance = Math.max(2, Math.min(8, this.current.tolerance));
+        this.current.tolerance = Math.max(2, Math.min(10, this.current.tolerance));
         this.current.levelLength = Math.max(5, Math.min(15, this.current.levelLength));
 
         // Apply to Audio and Game

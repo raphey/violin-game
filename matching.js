@@ -74,6 +74,11 @@ const Matching = {
 
         console.log(`Searching for GO! click around ${expectedGoTimeSeconds.toFixed(2)}s (${searchStartMs.toFixed(0)}-${searchEndMs.toFixed(0)}ms) at ${this.tempo} BPM`);
 
+        // Debug: Log search window
+        if (typeof Debug !== 'undefined') {
+            Debug.logGoClickSearch(searchStartMs / 1000, searchEndMs / 1000, expectedGoTimeSeconds, this.tempo);
+        }
+
         const checkInterval = 0.01; // Check every 10ms
         const checkSamples = Math.round(checkInterval * sampleRate);
 
@@ -90,6 +95,14 @@ const Matching = {
             }
             rms = Math.sqrt(rms / (windowEnd - windowStart));
 
+            // Debug: Log RMS levels (only if debug enabled to avoid spam)
+            if (typeof Debug !== 'undefined' && Debug.enabled) {
+                const isMax = rms > maxRms && rms > 0.02;
+                if (isMax || rms > 0.015) { // Only log significant RMS values
+                    Debug.logGoClickRMS(windowStart / sampleRate * 1000, rms, isMax);
+                }
+            }
+
             if (rms > maxRms && rms > 0.02) {
                 maxRms = rms;
                 lastClickPosition = windowStart;
@@ -98,11 +111,11 @@ const Matching = {
 
         if (lastClickPosition >= 0) {
             console.log(`Found GO! click at sample ${lastClickPosition} (${(lastClickPosition / sampleRate * 1000).toFixed(1)}ms, RMS: ${maxRms.toFixed(4)})`);
-            return lastClickPosition;
+            return { sample: lastClickPosition, rms: maxRms };
         }
 
         console.log('Could not detect GO! click in recording');
-        return searchStartSample; // Default to expected position
+        return { sample: searchStartSample, rms: 0 }; // Default to expected position
     },
 
     // Analyze recorded audio and extract pitch time series
@@ -122,7 +135,9 @@ const Matching = {
         console.log(`GO! click SCHEDULED at ${(goClickScheduledTime * 1000).toFixed(1)}ms into recording`);
 
         // Detect where GO! click ACTUALLY appears in the recording
-        const goClickDetectedSample = this.findGoClickInRecording(audioData, sampleRate);
+        const goClickResult = this.findGoClickInRecording(audioData, sampleRate);
+        const goClickDetectedSample = goClickResult.sample;
+        const goClickRms = goClickResult.rms;
         const goClickDetectedTime = goClickDetectedSample / sampleRate;
         console.log(`GO! click DETECTED at ${(goClickDetectedTime * 1000).toFixed(1)}ms into recording`);
 
@@ -145,6 +160,23 @@ const Matching = {
 
         console.log(`Analyzing ${expectedSlices} slices`);
         console.log(`Recording has ${Math.floor(audioData.length / sliceSamples)} potential slices`);
+
+        // Debug: Send timing data
+        if (typeof Debug !== 'undefined') {
+            Debug.clear();
+            Debug.setTimingData({
+                recordingStartTime: recordingStartTime,
+                goClickScheduledTime: goClickScheduledTime,
+                goClickDetectedTime: goClickDetectedTime,
+                latencyMs: latencyMs,
+                userPlayStartTime: startSample / sampleRate,
+                userPlayEndTime: (startSample + expectedSlices * sliceSamples) / sampleRate,
+                goClickRms: goClickRms,
+                tempo: this.tempo,
+                beatDuration: this.beatDuration,
+                sliceInterval: this.sliceInterval
+            });
+        }
 
         for (let sliceIndex = 0; sliceIndex < expectedSlices; sliceIndex++) {
             const slicePosition = startSample + (sliceIndex * sliceSamples);
@@ -175,20 +207,25 @@ const Matching = {
     },
 
     // Calculate error between reference and recorded
-    calculateError: function(reference, recorded) {
+    calculateError: function(reference, recorded, pattern) {
         // Make sure they're the same length
         const minLength = Math.min(reference.length, recorded.length);
         let totalError = 0;
 
+        // Debug: Prepare slice-by-slice data
+        const sliceData = [];
+
         for (let i = 0; i < minLength; i++) {
             const refFreq = reference[i];
             const recFreq = recorded[i];
+            let sliceError = 0;
 
             if (refFreq === null && recFreq === null) {
                 // Both silence - perfect match
-                continue;
+                sliceError = 0;
             } else if (refFreq === null || recFreq === null) {
                 // One is silence, one is not - large error
+                sliceError = 10;
                 totalError += 10;
             } else {
                 // Both have pitch - find closest octave match
@@ -201,12 +238,44 @@ const Matching = {
 
                 // Convert cents to error score (0 cents = 0 error, 100 cents = ~8.3 error)
                 // This makes it more forgiving for small pitch variations
-                const error = Math.min(cents / 12, 10); // Cap at 10 per slice
-                totalError += error;
+                sliceError = Math.min(cents / 12, 10); // Cap at 10 per slice
+                totalError += sliceError;
             }
+
+            // Debug: Store slice data
+            sliceData.push({
+                startTime: i * this.sliceInterval,
+                expected: refFreq,
+                expectedNote: refFreq ? this.frequencyToNote(refFreq) : null,
+                detected: recFreq,
+                error: sliceError
+            });
         }
 
         // Average error per slice
-        return minLength > 0 ? totalError / minLength : 100;
+        const avgError = minLength > 0 ? totalError / minLength : 100;
+
+        // Debug: Send pitch data
+        if (typeof Debug !== 'undefined') {
+            Debug.setPitchData({
+                slices: sliceData,
+                totalError: totalError,
+                avgError: avgError,
+                tolerance: Game.tolerance,
+                passed: avgError <= Game.tolerance
+            });
+        }
+
+        return avgError;
+    },
+
+    // Convert frequency to note name (for debug display)
+    frequencyToNote: function(freq) {
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const midi = 69 + 12 * Math.log2(freq / 440);
+        const midiRounded = Math.round(midi);
+        const octave = Math.floor(midiRounded / 12) - 1;
+        const note = noteNames[midiRounded % 12];
+        return `${note}${octave}`;
     }
 };

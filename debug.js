@@ -1,0 +1,202 @@
+// Debug Panel
+// On-screen debugging for iPad and other devices where console is hard to access
+const Debug = {
+    enabled: false,
+    panel: null,
+    content: null,
+    currentData: {},
+
+    init: function() {
+        // Create debug panel
+        this.panel = document.createElement('div');
+        this.panel.id = 'debug-panel';
+        this.panel.className = 'debug-panel hidden';
+
+        // Create header with toggle button
+        const header = document.createElement('div');
+        header.className = 'debug-header';
+        header.innerHTML = '<h3>Debug Info</h3><button id="debug-close">×</button>';
+
+        // Create scrollable content area
+        this.content = document.createElement('div');
+        this.content.className = 'debug-content';
+
+        this.panel.appendChild(header);
+        this.panel.appendChild(this.content);
+        document.body.appendChild(this.panel);
+
+        // Create toggle button in settings
+        const settingsBtn = document.getElementById('settings-btn');
+        const debugToggle = document.createElement('button');
+        debugToggle.id = 'debug-toggle';
+        debugToggle.className = 'settings-btn';
+        debugToggle.textContent = '🐛 Debug';
+        debugToggle.style.marginLeft = '10px';
+        settingsBtn.parentNode.insertBefore(debugToggle, settingsBtn.nextSibling);
+
+        // Event listeners
+        document.getElementById('debug-toggle').addEventListener('click', () => {
+            this.toggle();
+        });
+
+        document.getElementById('debug-close').addEventListener('click', () => {
+            this.hide();
+        });
+
+        console.log('Debug panel initialized');
+    },
+
+    toggle: function() {
+        if (this.enabled) {
+            this.hide();
+        } else {
+            this.show();
+        }
+    },
+
+    show: function() {
+        this.enabled = true;
+        this.panel.classList.remove('hidden');
+        this.log('Debug mode enabled');
+    },
+
+    hide: function() {
+        this.enabled = false;
+        this.panel.classList.add('hidden');
+    },
+
+    clear: function() {
+        this.content.innerHTML = '';
+        this.currentData = {};
+    },
+
+    log: function(message, data = null) {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = 'debug-entry';
+
+        let html = `<span class="debug-time">[${timestamp}]</span> ${message}`;
+
+        if (data !== null && typeof data === 'object') {
+            html += `<pre class="debug-data">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        entry.innerHTML = html;
+        this.content.appendChild(entry);
+
+        // Auto-scroll to bottom
+        this.content.scrollTop = this.content.scrollHeight;
+    },
+
+    section: function(title) {
+        const section = document.createElement('div');
+        section.className = 'debug-section';
+        section.innerHTML = `<strong>${title}</strong>`;
+        this.content.appendChild(section);
+        this.content.scrollTop = this.content.scrollHeight;
+    },
+
+    // Store timing data for display
+    setTimingData: function(data) {
+        this.currentData.timing = data;
+        this.updateTimingDisplay();
+    },
+
+    // Store pitch data for display
+    setPitchData: function(data) {
+        this.currentData.pitch = data;
+        this.updatePitchDisplay();
+    },
+
+    updateTimingDisplay: function() {
+        if (!this.currentData.timing) return;
+
+        const t = this.currentData.timing;
+
+        this.section('⏱️ TIMING INFORMATION');
+        this.log(`Recording start: ${t.recordingStartTime.toFixed(3)}s (AudioContext time)`);
+        this.log(`GO! SCHEDULED at: ${t.goClickScheduledTime.toFixed(3)}s into recording`);
+        this.log(`GO! DETECTED at: ${t.goClickDetectedTime.toFixed(3)}s into recording`);
+        this.log(`<span class="debug-highlight">Round-trip latency: ${t.latencyMs.toFixed(1)}ms</span>`);
+        this.log(`User playing starts at: ${t.userPlayStartTime.toFixed(3)}s into recording`);
+        this.log(`Analysis window: ${t.userPlayStartTime.toFixed(3)}s - ${t.userPlayEndTime.toFixed(3)}s`);
+
+        if (t.goClickRms) {
+            this.log(`GO! click RMS: ${t.goClickRms.toFixed(4)}`);
+        }
+
+        this.log(`Tempo: ${t.tempo} BPM (beat = ${t.beatDuration.toFixed(3)}s)`);
+        this.log(`Slice interval: ${t.sliceInterval.toFixed(3)}s (8th notes)`);
+    },
+
+    updatePitchDisplay: function() {
+        if (!this.currentData.pitch) return;
+
+        const p = this.currentData.pitch;
+
+        this.section('🎵 PITCH DETECTION');
+        this.log(`Total slices analyzed: ${p.slices.length}`);
+
+        // Create a detailed table view
+        let tableHtml = '<table class="debug-table"><thead><tr><th>Slice</th><th>Time</th><th>Expected</th><th>Detected</th><th>Error</th></tr></thead><tbody>';
+
+        p.slices.forEach((slice, i) => {
+            const timeMs = (slice.startTime * 1000).toFixed(0);
+            const expected = slice.expected ? `${slice.expectedNote} (${slice.expected.toFixed(1)} Hz)` : 'silence';
+            const detected = slice.detected ? `${slice.detected.toFixed(1)} Hz` : 'silence';
+            const error = slice.error !== undefined ? slice.error.toFixed(2) : 'N/A';
+
+            const errorClass = slice.error > 2 ? 'error-high' : (slice.error > 1 ? 'error-medium' : 'error-low');
+
+            tableHtml += `<tr>
+                <td>${i + 1}</td>
+                <td>${timeMs}ms</td>
+                <td>${expected}</td>
+                <td>${detected}</td>
+                <td class="${errorClass}">${error}</td>
+            </tr>`;
+        });
+
+        tableHtml += '</tbody></table>';
+
+        const tableEntry = document.createElement('div');
+        tableEntry.className = 'debug-entry';
+        tableEntry.innerHTML = tableHtml;
+        this.content.appendChild(tableEntry);
+
+        this.log(`<span class="debug-highlight">Total error: ${p.totalError.toFixed(2)} (avg: ${p.avgError.toFixed(2)})</span>`);
+        this.log(`Tolerance: ${p.tolerance.toFixed(2)}`);
+        this.log(`Result: ${p.passed ? '✓ PASS' : '✗ FAIL'}`);
+
+        this.content.scrollTop = this.content.scrollHeight;
+    },
+
+    // Quick method to log GO! click search info
+    logGoClickSearch: function(searchStart, searchEnd, expectedTime, tempo) {
+        this.section('🔍 GO! CLICK SEARCH');
+        this.log(`Expected GO! at: ${expectedTime.toFixed(2)}s (7 beats @ ${tempo} BPM)`);
+        this.log(`Search window: ${searchStart.toFixed(3)}s - ${searchEnd.toFixed(3)}s (±300ms)`);
+        this.log(`Window width: ${((searchEnd - searchStart) * 1000).toFixed(0)}ms`);
+    },
+
+    // Log RMS levels during GO! search
+    logGoClickRMS: function(timeMs, rms, isMax) {
+        if (!this.enabled) return;
+        const marker = isMax ? '← MAX' : '';
+        this.log(`  ${timeMs.toFixed(1)}ms: RMS=${rms.toFixed(4)} ${marker}`);
+    },
+
+    // Log autocorrelation results for a slice
+    logAutoCorrelate: function(sliceIndex, freq, rms, correlation) {
+        if (!this.enabled) return;
+        const freqStr = freq > 0 ? `${freq.toFixed(1)} Hz` : 'silence';
+        this.log(`Slice ${sliceIndex}: ${freqStr} (RMS=${rms.toFixed(4)}, corr=${correlation ? correlation.toFixed(3) : 'N/A'})`);
+    }
+};
+
+// Initialize debug panel when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => Debug.init());
+} else {
+    Debug.init();
+}

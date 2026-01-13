@@ -6,10 +6,25 @@ const Matching = {
     get beatDuration() { return Audio.beatDuration; },
     get sliceInterval() { return Audio.beatDuration / 2; }, // 8th note slices (half a beat)
 
-    // Sample notes mapping (MIDI numbers)
-    sampleNotes: {
-        'G3': 55, 'A3': 57, 'B3': 59, 'C4': 60, 'D4': 62,
-        'E4': 64, 'A4': 69, 'B4': 71, 'E5': 76, 'A5': 81
+    // Convert note name to MIDI number
+    noteToMidi: function(noteName) {
+        const noteMap = {
+            'C': 0, 'C#': 1, 'Db': 1,
+            'D': 2, 'D#': 3, 'Eb': 3,
+            'E': 4,
+            'F': 5, 'F#': 6, 'Gb': 6,
+            'G': 7, 'G#': 8, 'Ab': 8,
+            'A': 9, 'A#': 10, 'Bb': 10,
+            'B': 11
+        };
+
+        const match = noteName.match(/^([A-G]#?|[A-G]b?)(\d+)$/);
+        if (!match) return null;
+
+        const note = match[1];
+        const octave = parseInt(match[2]);
+
+        return (octave + 1) * 12 + noteMap[note];
     },
 
     // Convert MIDI to frequency
@@ -32,9 +47,10 @@ const Matching = {
             const duration = pattern.durations[index];
             const durationInSeconds = duration * this.beatDuration;
             const numSlices = Math.round(durationInSeconds / this.sliceInterval);
-            const frequency = this.midiToFrequency(this.sampleNotes[note]);
+            const midi = this.noteToMidi(note);
+            const frequency = this.midiToFrequency(midi);
 
-            console.log(`Note ${index}: ${note}, duration=${duration} beats, durationInSeconds=${durationInSeconds}, numSlices=${numSlices}`);
+            console.log(`Note ${index}: ${note} (MIDI ${midi}), duration=${duration} beats, durationInSeconds=${durationInSeconds}, numSlices=${numSlices}, freq=${frequency.toFixed(2)} Hz`);
 
             for (let i = 0; i < numSlices; i++) {
                 series.push(frequency);

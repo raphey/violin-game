@@ -355,24 +355,472 @@
         "durations": [1, 1, 1, 1]
       },
       {
-        "notes": ["C#5", "B4", "E5", "D5"],
-        "durations": [1, 1, 1, 1]
-      },
-      {
-        "notes": ["F#5", "E5", "D5", "C#5"],
-        "durations": [1, 1, 1, 1]
-      },
-      {
         "notes": ["E5", "D5", "C#5", "B4"],
         "durations": [1, 1, 1, 1]
       }
     ]
   },
   "lightly-row": {
-    "level1": [],
-    "level2": [],
-    "level3": [],
-    "level4": []
+    "level1": [
+      {
+        "notes": ["E5", "A4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "B4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "D5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "E5"],
+        "durations": [2, 2]
+      }
+    ],
+    "level2": [
+      {
+        "notes": ["A4", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["B4", "D5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["C#5", "E5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["C#5", "A4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["D5", "B4"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["E5", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["B4", "C#5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["C#5", "D5"],
+        "durations": [2, 2]
+      },
+      {
+        "notes": ["D5", "E5"],
+        "durations": [2, 2]
+      }
+    ],
+    "level3": [
+      {
+        "notes": ["A4", "C#5", "A4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["A4", "C#5", "A4"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["A4", "C#5", "A4"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["C#5", "A4", "C#5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["C#5", "A4", "C#5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["C#5", "A4", "C#5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["B4", "D5", "B4"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["B4", "D5", "B4"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["B4", "D5", "B4"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["D5", "B4", "D5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["D5", "B4", "D5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["D5", "B4", "D5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["E5", "C#5", "E5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "E5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["B4", "C#5", "D5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["B4", "C#5", "D5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["B4", "C#5", "D5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["C#5", "D5", "E5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "E5"],
+        "durations": [2, 1, 1]
+      },
+      {
+        "notes": ["A4", "C#5", "E5"],
+        "durations": [1, 1, 2]
+      },
+      {
+        "notes": ["A4", "C#5", "E5"],
+        "durations": [1, 2, 1]
+      },
+      {
+        "notes": ["A4", "C#5", "E5"],
+        "durations": [2, 1, 1]
+      }
+    ],
+    "level4": [
+      {
+        "notes": ["A4", "C#5", "A4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "C#5", "A4", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "C#5", "E5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "C#5", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "E5", "A4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "E5", "A4", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "E5", "C#5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["A4", "E5", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "A4", "C#5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "A4", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "A4", "E5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "A4", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "A4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "A4", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "A4", "C#5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "A4", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "A4", "E5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "A4", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "A4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "A4", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "E5", "A4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "C#5", "B4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "C#5", "B4", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "C#5", "D5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "C#5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "D5", "B4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "D5", "B4", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "D5", "C#5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["B4", "D5", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "C#5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "D5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "B4", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "B4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "B4", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "C#5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "B4", "C#5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "B4", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "B4", "D5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "B4", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "B4", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "B4", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "D5", "B4"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "D5", "E5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["C#5", "E5", "D5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "D5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "C#5", "E5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "E5", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "E5", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "E5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["D5", "E5", "D5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "D5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "D5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "C#5", "E5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "D5", "C#5", "D5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "D5", "C#5", "E5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "D5", "E5", "C#5"],
+        "durations": [1, 1, 1, 1]
+      },
+      {
+        "notes": ["E5", "D5", "E5", "D5"],
+        "durations": [1, 1, 1, 1]
+      }
+    ]
   },
   "wind": {
     "level1": [],

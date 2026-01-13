@@ -83,8 +83,8 @@ const Sounds = {
                 2217.46,  // C#7
                 3322.44   // G#7
             ];
-            noteDuration = beatDuration / 3;
             noteDelay = beatDuration / 4; // Sixteenth notes
+            noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
         } else if (category === 'see-saw') {
             // Triplet eighth notes: B B B B B B A C# E A
@@ -100,8 +100,8 @@ const Sounds = {
                 659.25,  // E5
                 880.00   // A5
             ];
-            noteDuration = beatDuration / 2;
             noteDelay = beatDuration / 3; // Triplet eighth notes (3 per beat)
+            noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
         } else if (category === 'twinkle') {
             // Eighth notes: D D C# C# B E A
@@ -114,8 +114,8 @@ const Sounds = {
                 659.25,  // E5
                 880.00   // A5
             ];
-            noteDuration = beatDuration / 1.5;
             noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
+            noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
         } else {
             // Default: A major 7th arpeggio

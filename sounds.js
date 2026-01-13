@@ -101,7 +101,7 @@ const Sounds = {
                 880.00   // A5
             ];
             noteDelay = beatDuration / 3; // Triplet eighth notes (3 per beat)
-            noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
+            noteDuration = noteDelay * 0.95; // More legato
             oscillatorType = 'triangle';
         } else if (category === 'twinkle') {
             // Eighth notes: D D C# C# B E A

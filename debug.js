@@ -15,7 +15,7 @@ const Debug = {
         // Create header with toggle button
         const header = document.createElement('div');
         header.className = 'debug-header';
-        header.innerHTML = '<h3>Debug Info</h3><button id="debug-close">×</button>';
+        header.innerHTML = '<h3>Debug Info</h3><div class="debug-header-buttons"><button id="debug-clear" class="debug-clear-btn">Clear</button><button id="debug-close">×</button></div>';
 
         // Create scrollable content area
         this.content = document.createElement('div');
@@ -43,6 +43,10 @@ const Debug = {
             this.hide();
         });
 
+        document.getElementById('debug-clear').addEventListener('click', () => {
+            this.clear();
+        });
+
         console.log('Debug panel initialized');
     },
 
@@ -68,6 +72,7 @@ const Debug = {
     clear: function() {
         this.content.innerHTML = '';
         this.currentData = {};
+        this.log('Debug panel cleared');
     },
 
     log: function(message, data = null) {
@@ -91,8 +96,17 @@ const Debug = {
     section: function(title) {
         const section = document.createElement('div');
         section.className = 'debug-section';
-        section.innerHTML = `<strong>${title}</strong>`;
+        const timestamp = new Date().toLocaleTimeString();
+        section.innerHTML = `<strong>${title}</strong> <span class="debug-section-time">[${timestamp}]</span>`;
         this.content.appendChild(section);
+        this.content.scrollTop = this.content.scrollHeight;
+    },
+
+    separator: function() {
+        const sep = document.createElement('div');
+        sep.className = 'debug-separator';
+        sep.innerHTML = '─'.repeat(50);
+        this.content.appendChild(sep);
         this.content.scrollTop = this.content.scrollHeight;
     },
 

@@ -163,7 +163,11 @@ const Matching = {
 
         // Debug: Send timing data
         if (typeof Debug !== 'undefined') {
-            Debug.clear();
+            // Add separator between questions (but not before first question)
+            if (typeof Game !== 'undefined' && Game.currentQuestionNum > 1) {
+                Debug.separator();
+            }
+            Debug.section(`📊 QUESTION ${typeof Game !== 'undefined' ? Game.currentQuestionNum : '?'}`);
             Debug.setTimingData({
                 recordingStartTime: recordingStartTime,
                 goClickScheduledTime: goClickScheduledTime,

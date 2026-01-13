@@ -62,6 +62,23 @@ const Debug = {
         this.enabled = true;
         this.panel.classList.remove('hidden');
         this.log('Debug mode enabled');
+
+        // Show microphone settings if available
+        if (typeof Recording !== 'undefined' && Recording.micSettings) {
+            this.section('🎤 MICROPHONE SETTINGS');
+            const s = Recording.micSettings;
+            this.log(`Echo Cancellation: ${s.echoCancellation !== undefined ? s.echoCancellation : 'N/A'}`);
+            this.log(`Auto Gain Control: ${s.autoGainControl !== undefined ? s.autoGainControl : 'N/A'}`);
+            this.log(`Noise Suppression: ${s.noiseSuppression !== undefined ? s.noiseSuppression : 'N/A'}`);
+            this.log(`Sample Rate: ${s.sampleRate || 'N/A'} Hz`);
+            this.log(`Channel Count: ${s.channelCount || 'N/A'}`);
+            this.log(`Device: ${s.deviceId ? 'Detected' : 'N/A'}`);
+
+            // Warn if iOS is applying audio processing
+            if (s.echoCancellation || s.autoGainControl || s.noiseSuppression) {
+                this.log('<span class="debug-highlight">⚠️ WARNING: iOS is applying audio processing despite our constraints!</span>');
+            }
+        }
     },
 
     hide: function() {

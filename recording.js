@@ -7,6 +7,7 @@ const Recording = {
     recordedChunks: [],
     recordingStartTime: null,
     goClickTime: null,
+    micSettings: null,
 
     // Initialize microphone access (request permission)
     init: async function() {
@@ -34,6 +35,9 @@ const Recording = {
             const track = this.microphoneStream.getAudioTracks()[0];
             const settings = track.getSettings();
             console.log('Microphone access granted with settings:', settings);
+
+            // Store settings for debug panel
+            this.micSettings = settings;
 
         } catch (error) {
             console.error('Microphone access denied:', error);

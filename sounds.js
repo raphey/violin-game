@@ -83,6 +83,23 @@ const Sounds = {
             noteDuration = 0.15;
             noteDelay = 0.08; // 16th note feel - fast ascent
             oscillatorType = 'triangle';
+        } else if (category === 'see-saw') {
+            // Triplet eighth notes: B B B B B B A C# E A
+            notes = [
+                493.88,  // B4
+                493.88,  // B4
+                493.88,  // B4
+                493.88,  // B4
+                493.88,  // B4
+                493.88,  // B4
+                440.00,  // A4
+                554.37,  // C#5
+                659.25,  // E5
+                880.00   // A5
+            ];
+            noteDuration = 0.12;
+            noteDelay = 0.07; // Triplet eighth note feel
+            oscillatorType = 'triangle';
         } else {
             // Default: A major 7th arpeggio
             notes = [

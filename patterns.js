@@ -1,47 +1,13 @@
 // Pattern Generation
-// Loads patterns from JSON and provides random selection
+// Loads patterns from InstrumentConfig and provides random selection
 const Patterns = {
     allPatterns: null,
 
-    // Load patterns from JSON file
+    // Load patterns from InstrumentConfig
     init: async function() {
-        try {
-            const response = await fetch('patterns.json');
-            this.allPatterns = await response.json();
-            console.log('Patterns loaded:', this.allPatterns);
-        } catch (error) {
-            console.error('Error loading patterns:', error);
-            // Fallback patterns if loading fails
-            this.allPatterns = {
-                'open-strings': {
-                    'level1': [
-                        { notes: ['G3'], durations: [4] },
-                        { notes: ['D4'], durations: [4] },
-                        { notes: ['A4'], durations: [4] },
-                        { notes: ['E5'], durations: [4] }
-                    ],
-                    'level2': [],
-                    'level3': [],
-                    'level4': []
-                },
-                'see-saw': {
-                    'level1': [
-                        { notes: ['A4', 'A4'], durations: [2, 2] }
-                    ],
-                    'level2': [
-                        { notes: ['A4', 'B4'], durations: [2, 2] }
-                    ],
-                    'level3': [
-                        { notes: ['A4', 'A4', 'A4'], durations: [1, 1, 2] },
-                        { notes: ['A4', 'A4', 'B4'], durations: [1, 2, 1] },
-                        { notes: ['A4', 'B4', 'A4'], durations: [2, 1, 1] }
-                    ],
-                    'level4': [
-                        { notes: ['A4', 'B4', 'A4', 'E5'], durations: [1, 1, 1, 1] }
-                    ]
-                }
-            };
-        }
+        // Load patterns from instrument configuration
+        this.allPatterns = InstrumentConfig.patterns;
+        console.log('Patterns loaded from InstrumentConfig:', this.allPatterns);
     },
 
     // Generate (select) a random pattern for the given category and level

@@ -6,16 +6,9 @@ const Audio = {
     tempo: 90, // BPM (configurable via Settings)
     beatDuration: 0.667, // seconds per beat (60/90)
 
-    // Available samples and their MIDI note numbers
-    sampleNotes: {
-        'G3': 55,
-        'A3': 57,
-        'B3': 59,
-        'D4': 62,
-        'E4': 64,
-        'A4': 69,
-        'E5': 76,
-        'A5': 81
+    // Available samples and their MIDI note numbers (loaded from InstrumentConfig)
+    get sampleNotes() {
+        return InstrumentConfig.sampleNotes;
     },
 
     // Initialize audio context and load samples
@@ -27,7 +20,7 @@ const Audio = {
         console.log('Loading samples...');
         for (const sampleName of Object.keys(this.sampleNotes)) {
             try {
-                const response = await fetch(`samples/${sampleName}.wav`);
+                const response = await fetch(`${InstrumentConfig.sampleDirectory}${sampleName}.wav`);
                 const arrayBuffer = await response.arrayBuffer();
                 this.audioBuffers[sampleName] = await this.audioContext.decodeAudioData(arrayBuffer);
                 console.log(`Loaded sample: ${sampleName}`);

@@ -3,10 +3,10 @@
 const Settings = {
     // Default values
     defaults: {
-        tempo: 90,        // BPM (60-120)
-        tolerance: 7,     // Error threshold (2-10)
-        levelLength: 10,  // Questions per level (5-15)
-        showNotes: false  // Show note names (true/false)
+        tempo: 90,                                    // BPM (60-120)
+        tolerance: InstrumentConfig.defaultTolerance, // Error threshold (2-10)
+        levelLength: 10,                              // Questions per level (5-15)
+        showNotes: false                              // Show note names (true/false)
     },
 
     // Current values (loaded from localStorage or defaults)

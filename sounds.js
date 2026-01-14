@@ -71,87 +71,28 @@ const Sounds = {
         // Get current tempo's beat duration
         const beatDuration = (typeof Audio !== 'undefined' && Audio.beatDuration) ? Audio.beatDuration : 0.667;
 
+        // Get victory pattern from InstrumentConfig
+        const victoryPattern = InstrumentConfig.victoryPatterns[category] || InstrumentConfig.victoryPatterns['default'];
+        notes = victoryPattern.notes;
+
+        // Determine timing based on category/pattern
         if (category === 'open-strings') {
-            // Ascending by fifths from G3 - like a rocket taking off!
-            notes = [
-                196.00,   // G3
-                293.66,   // D4
-                440.00,   // A4
-                659.25,   // E5
-                987.77,   // B5
-                1479.98,  // F#6
-                2217.46,  // C#7
-                3322.44   // G#7
-            ];
             noteDelay = beatDuration / 4; // Sixteenth notes
             noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
-        } else if (category === 'see-saw') {
-            // Triplet eighth notes: B B B B B B A C# E A
-            notes = [
-                493.88,  // B4
-                493.88,  // B4
-                493.88,  // B4
-                493.88,  // B4
-                493.88,  // B4
-                493.88,  // B4
-                440.00,  // A4
-                554.37,  // C#5
-                659.25,  // E5
-                880.00   // A5
-            ];
+        } else if (category === 'see-saw' || victoryPattern.triplet) {
             noteDelay = beatDuration / 3; // Triplet eighth notes (3 per beat)
             noteDuration = noteDelay * 0.95; // More legato
             oscillatorType = 'triangle';
         } else if (category === 'twinkle') {
-            // Eighth notes: D D C# C# B E A
-            notes = [
-                587.33,  // D5
-                587.33,  // D5
-                554.37,  // C#5
-                554.37,  // C#5
-                493.88,  // B4
-                659.25,  // E5
-                880.00   // A5
-            ];
             noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
             noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
         } else if (category === 'lightly-row') {
-            // Eighth notes: scale degrees 1 3 5 5 3 5 8 in A major
-            notes = [
-                440.00,  // A4 (1)
-                554.37,  // C#5 (3)
-                659.25,  // E5 (5)
-                659.25,  // E5 (5)
-                554.37,  // C#5 (3)
-                659.25,  // E5 (5)
-                880.00   // A5 (8)
-            ];
             noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
             noteDuration = noteDelay * 0.85; // Smooth and flowing
             oscillatorType = 'triangle';
         } else {
-            // Default: A major 7th arpeggio
-            notes = [
-                440.00,  // A4
-                554.37,  // C#5
-                659.25,  // E5
-                830.61,  // G#5
-                880.00,  // A5
-                1108.73, // C#6
-                1318.51, // E6
-                1661.22, // G#6
-                1760.00, // A6
-                2217.46, // C#7
-                2637.02, // E7
-                3322.44, // G#7
-                // Repeat last 4 notes for emphasis
-                1760.00, // A6
-                2217.46, // C#7
-                2637.02, // E7
-                3322.44  // G#7
-            ];
             noteDuration = 0.15;
             noteDelay = 0.1;
             oscillatorType = 'triangle';

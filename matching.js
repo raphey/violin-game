@@ -293,8 +293,18 @@ const Matching = {
                 sliceError = 10;
                 totalError += 10;
             } else {
-                const octaveShift = Math.round(Math.log2(refFreq / recFreq));
-                const recFreqShifted = recFreq * Math.pow(2, octaveShift);
+                // Check for 3x subharmonic issue before octave shifting
+                let correctedRecFreq = recFreq;
+                const ratio = refFreq / recFreq;
+
+                // If ratio is close to 3, apply 3x correction (subharmonic detection error)
+                if (ratio >= 2.85 && ratio <= 3.15) {
+                    correctedRecFreq = recFreq * 3;
+                }
+
+                // Now do octave normalization on the corrected frequency
+                const octaveShift = Math.round(Math.log2(refFreq / correctedRecFreq));
+                const recFreqShifted = correctedRecFreq * Math.pow(2, octaveShift);
                 const cents = Math.abs(1200 * Math.log2(recFreqShifted / refFreq));
                 sliceError = Math.min(cents / 12, 10);
                 totalError += sliceError;
@@ -367,9 +377,18 @@ const Matching = {
                 totalError += 10;
             } else {
                 // Both have pitch - find closest octave match
-                // Calculate which octave shift of recFreq is closest to refFreq
-                const octaveShift = Math.round(Math.log2(refFreq / recFreq));
-                const recFreqShifted = recFreq * Math.pow(2, octaveShift);
+                // Check for 3x subharmonic issue before octave shifting
+                let correctedRecFreq = recFreq;
+                const ratio = refFreq / recFreq;
+
+                // If ratio is close to 3, apply 3x correction (subharmonic detection error)
+                if (ratio >= 2.85 && ratio <= 3.15) {
+                    correctedRecFreq = recFreq * 3;
+                }
+
+                // Calculate which octave shift of correctedRecFreq is closest to refFreq
+                const octaveShift = Math.round(Math.log2(refFreq / correctedRecFreq));
+                const recFreqShifted = correctedRecFreq * Math.pow(2, octaveShift);
 
                 // Calculate frequency difference in cents (musical distance)
                 const cents = Math.abs(1200 * Math.log2(recFreqShifted / refFreq));

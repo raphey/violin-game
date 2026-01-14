@@ -88,6 +88,15 @@ const UI = {
             this.updateSettingsUI();
         });
 
+        // Home button
+        const homeBtn = document.getElementById('home-btn');
+        homeBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            this.showCategoryScreen();
+        });
+
         // Tempo slider
         const tempoSlider = document.getElementById('tempo-slider');
         const tempoValue = document.getElementById('tempo-value');

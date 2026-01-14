@@ -8,7 +8,7 @@ const Game = {
     referenceTimeSeries: null,
     category: null,
     level: null,
-    tolerance: 6.0,
+    tolerance: 7.0,
 
     isPlaying: false,
 
@@ -104,7 +104,8 @@ const Game = {
             const recordedTimeSeries = Matching.analyzeRecording(
                 recordingInfo.audioBuffer,
                 recordingInfo.goClickTime,
-                recordingInfo.recordingStartTime
+                recordingInfo.recordingStartTime,
+                this.currentPattern
             );
 
             // Step 7: Check answer

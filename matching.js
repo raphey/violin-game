@@ -159,7 +159,7 @@ const Matching = {
     },
 
     // Analyze recorded audio using multi-offset alignment search
-    analyzeRecording: function(audioBuffer, goClickTime, recordingStartTime) {
+    analyzeRecording: function(audioBuffer, goClickTime, recordingStartTime, pattern) {
         const sampleRate = audioBuffer.sampleRate;
         const audioData = audioBuffer.getChannelData(0);
         const sliceSamples = Math.round(this.sliceInterval * sampleRate);
@@ -196,25 +196,34 @@ const Matching = {
 
             // Calculate error for this alignment (compare against stored reference)
             // Note: reference is stored by game.js before calling analyzeRecording
-            const error = this.calculateErrorForAlignment(this.currentReference || [], timeSeries);
+            const { avgError, maxNoteError } = this.calculateErrorForAlignment(
+                this.currentReference || [],
+                timeSeries,
+                pattern
+            );
+
+            // Use max of both errors to optimize for passing dual threshold
+            const worstError = Math.max(avgError, maxNoteError);
 
             const offsetMs = (offset * sixteenthNoteSamples / sampleRate * 1000);
-            console.log(`Offset ${offset} (${offsetMs.toFixed(0)}ms): error = ${error.toFixed(2)}`);
+            console.log(`Offset ${offset} (${offsetMs.toFixed(0)}ms): avg=${avgError.toFixed(2)}, maxNote=${maxNoteError.toFixed(2)}, worst=${worstError.toFixed(2)}`);
 
             attempts.push({
                 offset: offset,
                 offsetMs: offsetMs,
                 startSample: startSample,
                 timeSeries: timeSeries,
-                error: error
+                avgError: avgError,
+                maxNoteError: maxNoteError,
+                worstError: worstError
             });
         }
 
-        // Find the best alignment (lowest error)
-        attempts.sort((a, b) => a.error - b.error);
+        // Find the best alignment (minimize worst-case error for best chance of passing)
+        attempts.sort((a, b) => a.worstError - b.worstError);
         const bestAttempt = attempts[0];
 
-        console.log(`\nBEST ALIGNMENT: Offset ${bestAttempt.offset} (${bestAttempt.offsetMs.toFixed(0)}ms) with error ${bestAttempt.error.toFixed(2)}`);
+        console.log(`\nBEST ALIGNMENT: Offset ${bestAttempt.offset} (${bestAttempt.offsetMs.toFixed(0)}ms) with avg=${bestAttempt.avgError.toFixed(2)}, maxNote=${bestAttempt.maxNoteError.toFixed(2)}, worst=${bestAttempt.worstError.toFixed(2)}`);
 
         // Extract detailed debug info for the best attempt
         let bestAttemptDebugInfo = null;
@@ -235,7 +244,7 @@ const Matching = {
             Debug.section('🎯 ALIGNMENT SEARCH');
             attempts.forEach((attempt, i) => {
                 const marker = i === 0 ? ' ← BEST' : '';
-                Debug.log(`Offset ${attempt.offset} (+${attempt.offsetMs.toFixed(0)}ms): error = ${attempt.error.toFixed(2)}${marker}`);
+                Debug.log(`Offset ${attempt.offset} (+${attempt.offsetMs.toFixed(0)}ms): avg=${attempt.avgError.toFixed(2)}, maxNote=${attempt.maxNoteError.toFixed(2)}, worst=${attempt.worstError.toFixed(2)}${marker}`);
             });
 
             Debug.setTimingData({
@@ -267,28 +276,67 @@ const Matching = {
     },
 
     // Calculate error for alignment search (no debug output)
-    calculateErrorForAlignment: function(reference, recorded) {
+    // Returns both avgError and maxNoteError to optimize for passing dual threshold
+    calculateErrorForAlignment: function(reference, recorded, pattern) {
         const minLength = Math.min(reference.length, recorded.length);
         let totalError = 0;
+        const sliceErrors = [];
 
         for (let i = 0; i < minLength; i++) {
             const refFreq = reference[i];
             const recFreq = recorded[i];
+            let sliceError = 0;
 
             if (refFreq === null && recFreq === null) {
-                continue;
+                sliceError = 0;
             } else if (refFreq === null || recFreq === null) {
+                sliceError = 10;
                 totalError += 10;
             } else {
                 const octaveShift = Math.round(Math.log2(refFreq / recFreq));
                 const recFreqShifted = recFreq * Math.pow(2, octaveShift);
                 const cents = Math.abs(1200 * Math.log2(recFreqShifted / refFreq));
-                const error = Math.min(cents / 12, 10);
-                totalError += error;
+                sliceError = Math.min(cents / 12, 10);
+                totalError += sliceError;
             }
+
+            sliceErrors.push(sliceError);
         }
 
-        return minLength > 0 ? totalError / minLength : 100;
+        const avgError = minLength > 0 ? totalError / minLength : 100;
+
+        // Calculate per-note errors by grouping slices
+        let maxNoteError = 0;
+
+        if (pattern && pattern.notes && pattern.durations) {
+            let sliceIndex = 0;
+
+            pattern.notes.forEach((note, noteIndex) => {
+                const duration = pattern.durations[noteIndex];
+                const numSlices = Math.round(
+                    (duration * this.beatDuration) / this.sliceInterval
+                );
+
+                let noteError = 0;
+                let slicesProcessed = 0;
+
+                for (let i = 0; i < numSlices && sliceIndex < minLength; i++, sliceIndex++) {
+                    noteError += sliceErrors[sliceIndex];
+                    slicesProcessed++;
+                }
+
+                const noteAvgError = slicesProcessed > 0 ? noteError / slicesProcessed : 0;
+
+                if (noteAvgError > maxNoteError) {
+                    maxNoteError = noteAvgError;
+                }
+            });
+        } else {
+            // Fallback if pattern not provided
+            maxNoteError = avgError;
+        }
+
+        return { avgError, maxNoteError };
     },
 
     // Calculate error between reference and recorded (with debug output)

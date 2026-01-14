@@ -242,10 +242,12 @@ const UI = {
         const gameScreen = document.getElementById('game-screen');
         const celebrationScreen = document.getElementById('celebration-screen');
         const progressContainer = document.getElementById('progress-container');
+        const homeBtn = document.getElementById('home-btn');
 
         gameScreen.classList.add('hidden');
         celebrationScreen.classList.remove('hidden');
         progressContainer.classList.add('hidden');
+        homeBtn.classList.remove('hidden');
 
         // Update celebration text
         const title = document.getElementById('celebration-title');
@@ -277,6 +279,7 @@ const UI = {
         const gameScreen = document.getElementById('game-screen');
         const celebrationScreen = document.getElementById('celebration-screen');
         const progressContainer = document.getElementById('progress-container');
+        const homeBtn = document.getElementById('home-btn');
 
         categoryScreen.classList.add('hidden');
         settingsScreen.classList.remove('hidden');
@@ -284,6 +287,7 @@ const UI = {
         gameScreen.classList.add('hidden');
         celebrationScreen.classList.add('hidden');
         progressContainer.classList.add('hidden');
+        homeBtn.classList.remove('hidden');
 
         // Update UI to reflect current settings
         this.updateSettingsUI();
@@ -297,6 +301,7 @@ const UI = {
         const gameScreen = document.getElementById('game-screen');
         const celebrationScreen = document.getElementById('celebration-screen');
         const progressContainer = document.getElementById('progress-container');
+        const homeBtn = document.getElementById('home-btn');
 
         categoryScreen.classList.remove('hidden');
         settingsScreen.classList.add('hidden');
@@ -304,6 +309,7 @@ const UI = {
         gameScreen.classList.add('hidden');
         celebrationScreen.classList.add('hidden');
         progressContainer.classList.add('hidden');
+        homeBtn.classList.add('hidden');
     },
 
     // Show level selection screen
@@ -311,10 +317,12 @@ const UI = {
         const categoryScreen = document.getElementById('category-screen');
         const levelScreen = document.getElementById('level-screen');
         const progressContainer = document.getElementById('progress-container');
+        const homeBtn = document.getElementById('home-btn');
 
         categoryScreen.classList.add('hidden');
         levelScreen.classList.remove('hidden');
         progressContainer.classList.add('hidden');
+        homeBtn.classList.remove('hidden');
 
         // Dynamically create level buttons based on available patterns
         const levelButtonsContainer = document.getElementById('level-buttons-container');
@@ -362,10 +370,12 @@ const UI = {
         const levelScreen = document.getElementById('level-screen');
         const gameScreen = document.getElementById('game-screen');
         const progressContainer = document.getElementById('progress-container');
+        const homeBtn = document.getElementById('home-btn');
 
         levelScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
         progressContainer.classList.remove('hidden');
+        homeBtn.classList.remove('hidden');
 
         // Initialize the game with selected settings
         Game.init(this.selectedCategory, this.selectedLevel);

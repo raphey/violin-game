@@ -108,12 +108,16 @@ const Game = {
             );
 
             // Step 7: Check answer
-            const error = Matching.calculateError(this.referenceTimeSeries, recordedTimeSeries);
-            console.log(`Error: ${error.toFixed(2)}, Tolerance: ${this.tolerance}`);
+            const { avgError, maxNoteError } = Matching.calculateError(
+                this.referenceTimeSeries,
+                recordedTimeSeries,
+                this.currentPattern
+            );
+            console.log(`Overall error: ${avgError.toFixed(2)}, Max note error: ${maxNoteError.toFixed(2)}, Tolerance: ${this.tolerance}`);
             console.log('Reference:', this.referenceTimeSeries.map(f => f ? f.toFixed(1) : 'null'));
             console.log('Recorded:', recordedTimeSeries.map(f => f ? f.toFixed(1) : 'null'));
 
-            const passed = error <= this.tolerance;
+            const passed = avgError <= this.tolerance && maxNoteError <= this.tolerance;
 
             if (passed) {
                 this.onCorrectAnswer();

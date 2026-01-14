@@ -211,9 +211,24 @@ const Debug = {
         tableEntry.innerHTML = tableHtml;
         this.content.appendChild(tableEntry);
 
-        this.log(`<span class="debug-highlight">Total error: ${p.totalError.toFixed(2)} (avg: ${p.avgError.toFixed(2)})</span>`);
+        this.log(`<span class="debug-highlight">Overall avg error: ${p.avgError.toFixed(2)}</span>`);
+
+        // Show per-note errors if available
+        if (p.noteErrors && p.noteErrors.length > 0) {
+            this.log(`Per-note errors: [${p.noteErrors.map(e => e.toFixed(2)).join(', ')}]`);
+            this.log(`<span class="debug-highlight">Max note error: ${p.maxNoteError.toFixed(2)}</span>`);
+        }
+
         this.log(`Tolerance: ${p.tolerance.toFixed(2)}`);
-        this.log(`Result: ${p.passed ? '✓ PASS' : '✗ FAIL'}`);
+
+        // Show detailed pass/fail breakdown
+        const overallPass = p.avgError <= p.tolerance;
+        const notePass = !p.maxNoteError || p.maxNoteError <= p.tolerance;
+        this.log(`Overall check: ${overallPass ? '✓' : '✗'} (${p.avgError.toFixed(2)} ${overallPass ? '≤' : '>'} ${p.tolerance.toFixed(2)})`);
+        if (p.maxNoteError !== undefined) {
+            this.log(`Per-note check: ${notePass ? '✓' : '✗'} (${p.maxNoteError.toFixed(2)} ${notePass ? '≤' : '>'} ${p.tolerance.toFixed(2)})`);
+        }
+        this.log(`<span class="debug-highlight">Final result: ${p.passed ? '✓ PASS' : '✗ FAIL'}</span>`);
 
         this.content.scrollTop = this.content.scrollHeight;
     },

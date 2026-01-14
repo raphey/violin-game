@@ -351,8 +351,44 @@ const Matching = {
             sliceData.push(sliceInfo);
         }
 
-        // Average error per slice
+        // Average error per slice (overall)
         const avgError = minLength > 0 ? totalError / minLength : 100;
+
+        // Calculate per-note errors by grouping slices
+        let maxNoteError = 0;
+        const noteErrors = [];
+
+        if (pattern && pattern.notes && pattern.durations) {
+            let sliceIndex = 0;
+
+            pattern.notes.forEach((note, noteIndex) => {
+                const duration = pattern.durations[noteIndex];
+                const numSlices = Math.round(
+                    (duration * this.beatDuration) / this.sliceInterval
+                );
+
+                let noteError = 0;
+                let slicesProcessed = 0;
+
+                for (let i = 0; i < numSlices && sliceIndex < minLength; i++, sliceIndex++) {
+                    noteError += sliceData[sliceIndex].error;
+                    slicesProcessed++;
+                }
+
+                const noteAvgError = slicesProcessed > 0 ? noteError / slicesProcessed : 0;
+                noteErrors.push(noteAvgError);
+
+                if (noteAvgError > maxNoteError) {
+                    maxNoteError = noteAvgError;
+                }
+            });
+
+            console.log('Per-note errors:', noteErrors.map(e => e.toFixed(2)));
+            console.log('Max note error:', maxNoteError.toFixed(2));
+        } else {
+            // Fallback if pattern not provided
+            maxNoteError = avgError;
+        }
 
         // Debug: Send pitch data
         if (typeof Debug !== 'undefined') {
@@ -360,12 +396,14 @@ const Matching = {
                 slices: sliceData,
                 totalError: totalError,
                 avgError: avgError,
+                maxNoteError: maxNoteError,
+                noteErrors: noteErrors,
                 tolerance: Game.tolerance,
-                passed: avgError <= Game.tolerance
+                passed: avgError <= Game.tolerance && maxNoteError <= Game.tolerance
             });
         }
 
-        return avgError;
+        return { avgError, maxNoteError };
     },
 
     // Convert frequency to note name (for debug display)

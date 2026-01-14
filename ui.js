@@ -94,6 +94,18 @@ const UI = {
             if (typeof Sounds !== 'undefined') {
                 Sounds.playClick();
             }
+
+            // Stop recording if in progress
+            if (typeof Recording !== 'undefined' && Recording.audioRecorder && Recording.audioRecorder.state === 'recording') {
+                console.log('Stopping recording due to home button click');
+                Recording.audioRecorder.stop();
+            }
+
+            // Reset game state
+            if (typeof Game !== 'undefined') {
+                Game.isPlaying = false;
+            }
+
             this.showCategoryScreen();
         });
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Test - Violin Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #8b5cf6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #10b981;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        button {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 15px 25px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎻 Sound Test</h1>
+
+        <div class="section">
+            <h2>Basic Sounds</h2>
+            <div class="button-group">
+                <button onclick="Sounds.playClick()">Click Sound</button>
+                <button onclick="Sounds.playCorrect()">Correct Ding</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Victory Sounds</h2>
+            <div class="button-group">
+                <button onclick="Sounds.playFireworks('open-strings')">Open Strings Victory</button>
+                <button onclick="Sounds.playFireworks('see-saw')">See-Saw Victory</button>
+                <button onclick="Sounds.playFireworks('twinkle')">Twinkle Victory</button>
+                <button onclick="Sounds.playFireworks('lightly-row')">Lightly Row Victory</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="instrument-config.js"></script>
+    <script src="sounds.js"></script>
+</body>
+</html>

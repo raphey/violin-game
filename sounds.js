@@ -81,15 +81,15 @@ const Sounds = {
             noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
         } else if (category === 'see-saw' || victoryPattern.triplet) {
-            noteDelay = beatDuration / 3; // Triplet eighth notes (3 per beat)
+            noteDelay = beatDuration * 0.3; // 40% faster than eighth notes
             noteDuration = noteDelay * 0.95; // More legato
             oscillatorType = 'triangle';
         } else if (category === 'twinkle') {
-            noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
+            noteDelay = beatDuration * 0.3; // 40% faster than eighth notes
             noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
         } else if (category === 'lightly-row') {
-            noteDelay = beatDuration / 2; // Eighth notes (2 per beat)
+            noteDelay = beatDuration * 0.3; // 40% faster than eighth notes
             noteDuration = noteDelay * 0.85; // Smooth and flowing
             oscillatorType = 'triangle';
         } else {
@@ -108,7 +108,8 @@ const Sounds = {
             oscillator.frequency.value = freq;
             oscillator.type = oscillatorType;
 
-            const startTime = this.audioContext.currentTime + (i * noteDelay);
+            // Add buffer (0.15s) to ensure audio context is ready after recording, especially on Firefox
+            const startTime = this.audioContext.currentTime + 0.15 + (i * noteDelay);
 
             gainNode.gain.setValueAtTime(0.25, startTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + noteDuration);

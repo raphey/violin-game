@@ -196,7 +196,9 @@ const Game = {
         // Play fireworks sound for good scores
         if (celebrationLevel !== 'keep_trying') {
             if (typeof Sounds !== 'undefined') {
-                Sounds.playFireworks(this.category);
+                setTimeout(() => {
+                    Sounds.playFireworks(this.category);
+                }, 100);
             }
 
             // Start fireworks animation

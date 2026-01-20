@@ -362,9 +362,9 @@ const UI = {
 
             // Add star if all levels perfect, checkmark if all completed
             if (completion.allPerfect && completion.total > 0) {
-                btn.innerHTML = `${originalText} ⭐`;
+                btn.innerHTML = `⭐ ${originalText}`;
             } else if (completion.complete && completion.total > 0) {
-                btn.innerHTML = `${originalText} ✓`;
+                btn.innerHTML = `✓ ${originalText}`;
             } else {
                 btn.innerHTML = originalText;
             }
@@ -429,7 +429,7 @@ const UI = {
                         }
                     }
 
-                    btn.textContent = `Level ${level}${completionIcon}`;
+                    btn.textContent = `${completionIcon}${completionIcon ? ' ' : ''}Level ${level}`;
 
                     // Attach event listener
                     btn.addEventListener('click', () => {

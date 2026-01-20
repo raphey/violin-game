@@ -68,10 +68,11 @@ const CompletionTracker = {
     },
 
     // Check if all levels in a category are at least adequate
-    // Returns: { complete: boolean, total: number, completed: number }
+    // Returns: { complete: boolean, allPerfect: boolean, total: number, completed: number }
     getCategoryCompletion: function(category) {
         let total = 0;
         let completed = 0;
+        let perfectCount = 0;
 
         // Check all possible levels (up to 10)
         for (let i = 1; i <= 10; i++) {
@@ -87,13 +88,18 @@ const CompletionTracker = {
                 if (status === this.ADEQUATE || status === this.PERFECT) {
                     completed++;
                 }
+                if (status === this.PERFECT) {
+                    perfectCount++;
+                }
             }
         }
 
         return {
             complete: total > 0 && completed === total,
+            allPerfect: total > 0 && perfectCount === total,
             total: total,
-            completed: completed
+            completed: completed,
+            perfectCount: perfectCount
         };
     },
 

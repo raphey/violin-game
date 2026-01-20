@@ -360,8 +360,10 @@ const UI = {
 
             const originalText = btn.getAttribute('data-original-text');
 
-            // Add checkmark if all levels completed
-            if (completion.complete && completion.total > 0) {
+            // Add star if all levels perfect, checkmark if all completed
+            if (completion.allPerfect && completion.total > 0) {
+                btn.innerHTML = `${originalText} ⭐`;
+            } else if (completion.complete && completion.total > 0) {
                 btn.innerHTML = `${originalText} ✓`;
             } else {
                 btn.innerHTML = originalText;

@@ -192,6 +192,12 @@ const Game = {
 
         // Save completion status (if CompletionTracker is available)
         if (typeof CompletionTracker !== 'undefined') {
+            console.log('Saving completion:', {
+                category: this.category,
+                level: this.level,
+                correctCount: this.correctCount,
+                totalQuestions: this.totalQuestions
+            });
             const completionStatus = CompletionTracker.getStatusFromScore(
                 this.correctCount,
                 this.totalQuestions

@@ -26,6 +26,16 @@ const CompletionTracker = {
             perfect: 2
         };
 
+        console.log('CompletionTracker.setCompletion:', {
+            category,
+            level,
+            newStatus: status,
+            currentStatus,
+            newValue: statusValue[status],
+            currentValue: statusValue[currentStatus],
+            willUpdate: statusValue[status] > statusValue[currentStatus]
+        });
+
         // Only update if new status is better
         if (statusValue[status] > statusValue[currentStatus]) {
             localStorage.setItem(key, status);
@@ -33,12 +43,20 @@ const CompletionTracker = {
             return true;
         }
 
+        console.log(`Completion NOT updated (current is already ${currentStatus})`);
         return false;
     },
 
     // Determine completion status from score percentage
     getStatusFromScore: function(correctCount, totalQuestions) {
         const percentage = (correctCount / totalQuestions) * 100;
+
+        console.log('CompletionTracker.getStatusFromScore:', {
+            correctCount,
+            totalQuestions,
+            percentage,
+            isPerfect: percentage === 100
+        });
 
         if (percentage === 100) {
             return this.PERFECT;

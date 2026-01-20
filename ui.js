@@ -88,6 +88,21 @@ const UI = {
             this.updateSettingsUI();
         });
 
+        // Reset completion button
+        const resetCompletionBtn = document.getElementById('reset-completion-btn');
+        resetCompletionBtn.addEventListener('click', () => {
+            if (typeof Sounds !== 'undefined') {
+                Sounds.playClick();
+            }
+            if (confirm('Are you sure you want to reset all level completion data? This cannot be undone.')) {
+                if (typeof CompletionTracker !== 'undefined') {
+                    CompletionTracker.resetAll();
+                    this.updateCategoryCompletionIndicators();
+                    alert('All completion data has been reset!');
+                }
+            }
+        });
+
         // Home button
         const homeBtn = document.getElementById('home-btn');
         homeBtn.addEventListener('click', () => {
@@ -322,6 +337,36 @@ const UI = {
         celebrationScreen.classList.add('hidden');
         progressContainer.classList.add('hidden');
         homeBtn.classList.add('hidden');
+
+        // Update category completion indicators
+        this.updateCategoryCompletionIndicators();
+    },
+
+    // Update completion indicators on category buttons
+    updateCategoryCompletionIndicators: function() {
+        if (typeof CompletionTracker === 'undefined') return;
+
+        const categoryButtons = document.querySelectorAll('.menu-btn[data-category]');
+        categoryButtons.forEach(btn => {
+            if (btn.classList.contains('disabled')) return;
+
+            const category = btn.getAttribute('data-category');
+            const completion = CompletionTracker.getCategoryCompletion(category);
+
+            // Store original text if not already stored
+            if (!btn.hasAttribute('data-original-text')) {
+                btn.setAttribute('data-original-text', btn.innerHTML);
+            }
+
+            const originalText = btn.getAttribute('data-original-text');
+
+            // Add checkmark if all levels completed
+            if (completion.complete && completion.total > 0) {
+                btn.innerHTML = `${originalText} ✓`;
+            } else {
+                btn.innerHTML = originalText;
+            }
+        });
     },
 
     // Show level selection screen
@@ -358,7 +403,22 @@ const UI = {
                     const btn = document.createElement('button');
                     btn.className = 'menu-btn';
                     btn.setAttribute('data-level', level);
-                    btn.textContent = `Level ${level}`;
+
+                    // Get completion status
+                    let completionIcon = '';
+                    if (typeof CompletionTracker !== 'undefined') {
+                        const status = CompletionTracker.getCompletion(
+                            this.selectedCategory,
+                            level
+                        );
+                        if (status === CompletionTracker.PERFECT) {
+                            completionIcon = ' ⭐';
+                        } else if (status === CompletionTracker.ADEQUATE) {
+                            completionIcon = ' ✓';
+                        }
+                    }
+
+                    btn.textContent = `Level ${level}${completionIcon}`;
 
                     // Attach event listener
                     btn.addEventListener('click', () => {

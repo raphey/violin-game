@@ -190,6 +190,19 @@ const Game = {
             celebrationLevel = 'keep_trying';
         }
 
+        // Save completion status (if CompletionTracker is available)
+        if (typeof CompletionTracker !== 'undefined') {
+            const completionStatus = CompletionTracker.getStatusFromScore(
+                this.correctCount,
+                this.totalQuestions
+            );
+            CompletionTracker.setCompletion(
+                this.category,
+                this.level,
+                completionStatus
+            );
+        }
+
         // Show celebration screen
         UI.showCelebration(this.correctCount, this.totalQuestions, celebrationLevel);
 

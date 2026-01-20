@@ -411,6 +411,15 @@ const UI = {
                             this.selectedCategory,
                             level
                         );
+                        console.log(`Level ${level} completion status:`, {
+                            category: this.selectedCategory,
+                            level,
+                            status,
+                            PERFECT: CompletionTracker.PERFECT,
+                            ADEQUATE: CompletionTracker.ADEQUATE,
+                            matchesPerfect: status === CompletionTracker.PERFECT,
+                            matchesAdequate: status === CompletionTracker.ADEQUATE
+                        });
                         if (status === CompletionTracker.PERFECT) {
                             completionIcon = ' ⭐';
                         } else if (status === CompletionTracker.ADEQUATE) {

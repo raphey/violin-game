@@ -8,7 +8,7 @@ const Game = {
     referenceTimeSeries: null,
     category: null,
     level: null,
-    tolerance: 7.0,
+    tolerance: 6.0,
 
     isPlaying: false,
 

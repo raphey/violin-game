@@ -40,7 +40,7 @@ const Settings = {
             Audio.setTempo(this.current.tempo);
         }
         if (typeof Game !== 'undefined') {
-            Game.tolerance = this.current.tolerance;
+            Game.tolerance = this.current.tolerance * 0.6;
             Game.totalQuestions = this.current.levelLength;
         }
     },

@@ -8,7 +8,7 @@ const InstrumentConfig = {
     key: 'A', // A major
 
     // Default settings
-    defaultTolerance: 7,
+    defaultTolerance: 10,
 
     // Audio sample configuration
     sampleDirectory: 'samples/',

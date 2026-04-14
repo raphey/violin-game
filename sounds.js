@@ -77,7 +77,11 @@ const Sounds = {
         notes = victoryPattern.notes;
 
         // Determine timing based on category/pattern
-        if (category === 'open-strings') {
+        if (category === 'metroid') {
+            noteDelay = 0.13;
+            noteDuration = 0.18;
+            oscillatorType = 'triangle';
+        } else if (category === 'open-strings') {
             noteDelay = beatDuration / 4; // Sixteenth notes
             noteDuration = noteDelay * 0.8; // Slightly shorter for articulation
             oscillatorType = 'triangle';
@@ -100,6 +104,11 @@ const Sounds = {
         }
 
         notes.forEach((freq, i) => {
+            // Add buffer (0.15s) to ensure audio context is ready after recording, especially on Firefox
+            const startTime = this.audioContext.currentTime + 0.15 + (i * noteDelay);
+
+            if (!freq) return; // rest — advance time but play nothing
+
             const oscillator = this.audioContext.createOscillator();
             const gainNode = this.audioContext.createGain();
 
@@ -108,9 +117,6 @@ const Sounds = {
 
             oscillator.frequency.value = freq;
             oscillator.type = oscillatorType;
-
-            // Add buffer (0.15s) to ensure audio context is ready after recording, especially on Firefox
-            const startTime = this.audioContext.currentTime + 0.15 + (i * noteDelay);
 
             gainNode.gain.setValueAtTime(0.25, startTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + noteDuration);

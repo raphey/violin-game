@@ -445,6 +445,23 @@ const InstrumentConfig = {
                 { "notes": ["C#5", "B4",  "A4",  "C#5"], "durations": [1, 1, 1, 1] },
                 { "notes": ["B4",  "A4",  "C#5", "E5"],  "durations": [1, 1, 1, 1] }
             ]
+        },
+        "metroid": {
+            "level1": [
+                { "notes": ["F5"], "durations": [4] },
+                { "notes": ["D5"], "durations": [4] }
+            ],
+            "level2": [
+                { "notes": ["C4"],  "durations": [4] },
+                { "notes": ["F#4"], "durations": [4] },
+                { "notes": ["B4"],  "durations": [4] }
+            ],
+            "level3": [
+                { "notes": ["Bb4"], "durations": [4] },
+                { "notes": ["F4"],  "durations": [4] },
+                { "notes": ["A4"],  "durations": [4] },
+                { "notes": ["C#4"], "durations": [4] }
+            ]
         }
     },
 

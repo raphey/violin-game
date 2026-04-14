@@ -78,8 +78,8 @@ const Sounds = {
 
         // Determine timing based on category/pattern
         if (category === 'metroid') {
-            noteDelay = 0.13;
-            noteDuration = 0.18;
+            noteDelay = 0.26;
+            noteDuration = 0.40;
             oscillatorType = 'triangle';
         } else if (category === 'open-strings') {
             noteDelay = beatDuration / 4; // Sixteenth notes

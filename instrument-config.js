@@ -461,6 +461,11 @@ const InstrumentConfig = {
                 { "notes": ["F4"],  "durations": [4] },
                 { "notes": ["A4"],  "durations": [4] },
                 { "notes": ["C#4"], "durations": [4] }
+            ],
+            "level4": [
+                { "notes": ["Bb4", "F4", "A4", "C#4"], "durations": [1, 1, 1, 1] },
+                { "notes": ["C4",  "F#4", "B4"],       "durations": [1, 1, 2] },
+                { "notes": ["F5",  "D5"],               "durations": [2, 2] }
             ]
         }
     },
